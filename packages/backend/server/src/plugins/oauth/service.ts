@@ -209,6 +209,12 @@ export class OAuthService {
       ) {
         await this.auth.setEmailVerified(connectedAccount.userId);
       }
+
+      await this.syncGatewayRole(
+        connectedAccount.user.id,
+        externalAccount.role
+      );
+
       return connectedAccount.user;
     }
 
@@ -230,7 +236,35 @@ export class OAuthService {
       expiresAt: tokens.expiresAt,
     });
 
+    await this.syncGatewayRole(user.id, externalAccount.role);
+
     return user;
+  }
+
+  private async syncGatewayRole(userId: string, role?: string) {
+    if (!role) return;
+
+    if (role !== 'student' && role !== 'teacher') return;
+
+    const featureName =
+      role === 'student' ? 'gateway-student' : 'gateway-teacher';
+    const otherName =
+      role === 'student' ? 'gateway-teacher' : 'gateway-student';
+
+    const features = await this.models.userFeature.list(userId);
+    const hasFeature = features.includes(featureName as any);
+    const hasOther = features.includes(otherName as any);
+
+    if (hasFeature) return;
+    if (hasOther) {
+      await this.models.userFeature.remove(userId, otherName as any);
+    }
+
+    await this.models.userFeature.add(
+      userId,
+      featureName as any,
+      'Synced from gateway OIDC'
+    );
   }
 
   private async updateConnectedAccount(

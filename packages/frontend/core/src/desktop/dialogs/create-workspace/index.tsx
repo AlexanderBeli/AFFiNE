@@ -14,43 +14,24 @@ import { WorkspacesService } from '@affine/core/modules/workspace';
 import { buildShowcaseWorkspace } from '@affine/core/utils/first-app-data';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
-import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useState } from 'react';
 
 import * as styles from './index.css';
-import { ServerSelector } from './server-selector';
 
-const FormSection = ({
-  label,
-  input,
-}: {
-  label: string;
-  input: React.ReactNode;
-}) => {
-  return (
-    <section className={styles.section}>
-      <label className={styles.label}>{label}</label>
-      {input}
-    </section>
-  );
-};
+const serverId = 'affine-cloud';
 
 export const CreateWorkspaceDialog = ({
-  serverId,
+  serverId: _serverId,
   close,
   ...props
 }: DialogComponentProps<GLOBAL_DIALOG_SCHEMA['create-workspace']>) => {
   const t = useI18n();
 
   const [workspaceName, setWorkspaceName] = useState('');
-  const [inputServerId, setInputServerId] = useState(
-    serverId ?? 'affine-cloud'
-  );
 
   const serversService = useService(ServersService);
-  const server = useLiveData(
-    inputServerId ? serversService.server$(inputServerId) : null
-  );
+  const server = useLiveData(serversService.server$(serverId));
 
   const onOpenChange = useCallback(
     (open: boolean) => {
@@ -73,43 +54,25 @@ export const CreateWorkspaceDialog = ({
       childrenContentClassName={styles.content}
       customConfirmButton={() => {
         return (
-          <FrameworkScope scope={server?.scope}>
-            <CustomConfirmButton
-              workspaceName={workspaceName}
-              server={server}
-              onCreated={res =>
-                close({ metadata: res.meta, defaultDocId: res.defaultDocId })
-              }
-            />
-          </FrameworkScope>
+          <CustomConfirmButton
+            workspaceName={workspaceName}
+            server={server}
+            onCreated={res =>
+              close({ metadata: res.meta, defaultDocId: res.defaultDocId })
+            }
+          />
         );
       }}
       {...props}
     >
-      <FormSection
-        label={t['com.affine.nameWorkspace.subtitle.workspace-name']()}
-        input={
-          <RowInput
-            autoFocus
-            className={styles.input}
-            data-testid="create-workspace-input"
-            placeholder={t['com.affine.nameWorkspace.placeholder']()}
-            maxLength={64}
-            minLength={0}
-            onChange={setWorkspaceName}
-          />
-        }
-      />
-
-      <FormSection
-        label={t['com.affine.nameWorkspace.subtitle.workspace-type']()}
-        input={
-          <ServerSelector
-            className={styles.select}
-            selectedId={inputServerId}
-            onChange={setInputServerId}
-          />
-        }
+      <RowInput
+        autoFocus
+        className={styles.input}
+        data-testid="create-workspace-input"
+        placeholder={t['com.affine.nameWorkspace.placeholder']()}
+        maxLength={64}
+        minLength={0}
+        onChange={setWorkspaceName}
       />
     </ConfirmModal>
   );

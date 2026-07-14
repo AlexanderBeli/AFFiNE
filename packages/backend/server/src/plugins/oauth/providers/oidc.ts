@@ -527,6 +527,15 @@ export class OIDCProvider extends OAuthProvider implements OnModuleDestroy {
       account.name = name;
     }
 
+    const role = this.resolveStringClaim(
+      ['role'],
+      idTokenClaimsRecord,
+      userClaims
+    );
+    if (role) {
+      account.role = role;
+    }
+
     return account;
   }
 }

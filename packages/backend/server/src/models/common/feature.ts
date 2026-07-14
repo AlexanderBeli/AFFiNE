@@ -47,6 +47,8 @@ export enum Feature {
   FreePlan = 'free_plan_v1',
   ProPlan = 'pro_plan_v1',
   LifetimeProPlan = 'lifetime_pro_plan_v1',
+  GatewayStudent = 'gateway-student',
+  GatewayTeacher = 'gateway-teacher',
 
   // workspace
   UnlimitedWorkspace = 'unlimited_workspace',
@@ -64,6 +66,8 @@ export const FeaturesShapes = {
   lifetime_pro_plan_v1: UserPlanQuotaConfig,
   team_plan_v1: WorkspaceQuotaConfig,
   quota_exceeded_readonly_workspace_v1: EMPTY_CONFIG,
+  'gateway-student': EMPTY_CONFIG,
+  'gateway-teacher': EMPTY_CONFIG,
 } satisfies Record<Feature, z.ZodObject<any>>;
 
 export type UserFeatureName = keyof Pick<
@@ -73,6 +77,8 @@ export type UserFeatureName = keyof Pick<
   | 'free_plan_v1'
   | 'pro_plan_v1'
   | 'lifetime_pro_plan_v1'
+  | 'gateway-student'
+  | 'gateway-teacher'
 >;
 export type WorkspaceFeatureName = keyof Pick<
   typeof FeaturesShapes,
@@ -157,4 +163,6 @@ export const FeatureConfigs: {
   quota_exceeded_readonly_workspace_v1: EmptyFeature,
   unlimited_copilot: EmptyFeature,
   administrator: EmptyFeature,
+  'gateway-student': EmptyFeature,
+  'gateway-teacher': EmptyFeature,
 };

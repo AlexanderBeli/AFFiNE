@@ -16,6 +16,7 @@ export interface OAuthAccount {
   email: string;
   name?: string;
   avatarUrl?: string;
+  role?: string;
 }
 
 export interface Tokens {

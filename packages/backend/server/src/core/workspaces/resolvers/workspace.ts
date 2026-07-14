@@ -13,6 +13,7 @@ import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import type { FileUpload } from '../../../base';
 import {
   AFFiNELogger,
+  ActionForbidden,
   registerObjectType,
   SpaceAccessDenied,
   SpaceNotFound,
@@ -212,6 +213,9 @@ export class WorkspaceResolver {
     @Args({ name: 'init', type: () => GraphQLUpload, nullable: true })
     init: FileUpload | null
   ) {
+    if (await this.models.userFeature.has(user.id, 'gateway-student' as any)) {
+      throw new ActionForbidden('Students cannot create workspaces');
+    }
     const workspace = await this.models.workspace.create(user.id);
 
     if (init) {
