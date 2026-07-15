@@ -1,4 +1,4 @@
-import { FeatureType } from '@affine/graphql';
+import { FeatureType, getCurrentUserFeaturesQuery } from '@affine/graphql';
 import {
   catchErrorInto,
   effect,
@@ -10,10 +10,11 @@ import {
   onStart,
   smartRetry,
 } from '@toeverything/infra';
-import { map, tap } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs';
 
 import { mapRealtimeEnum } from '../realtime/enum';
 import type { AuthService } from '../services/auth';
+import type { GraphQLService } from '../services/graphql';
 
 export class UserFeature extends Entity {
   // undefined means no user, null means loading
@@ -26,7 +27,10 @@ export class UserFeature extends Entity {
   isRevalidating$ = new LiveData(false);
   error$ = new LiveData<any | null>(null);
 
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly gqlService: GraphQLService
+  ) {
     super();
   }
 
@@ -44,13 +48,40 @@ export class UserFeature extends Entity {
 
           const account = this.authService.session.account$.value;
           if (account?.id !== accountId) return;
+
+          const features =
+            account.info?.features && account.info.features.length > 0
+              ? account.info.features.map(feature =>
+                  mapRealtimeEnum(FeatureType, feature, 'user feature')
+                )
+              : [];
+
           return {
             userId: account.id,
-            features: (account.info?.features ?? []).map(feature =>
-              mapRealtimeEnum(FeatureType, feature, 'user feature')
-            ),
+            features,
           };
         }).pipe(
+          switchMap(data => {
+            if (!data || data.features.length > 0) {
+              return [data];
+            }
+            return fromPromise(async () => {
+              try {
+                const res = await this.gqlService.gql({
+                  query: getCurrentUserFeaturesQuery,
+                });
+                const gqlFeatures = (res.currentUser?.features ?? []).map(
+                  (f: string) => FeatureType[f as keyof typeof FeatureType] ?? f
+                );
+                return {
+                  userId: data.userId,
+                  features: gqlFeatures,
+                };
+              } catch {
+                return data;
+              }
+            });
+          }),
           smartRetry(),
           tap(data => {
             if (data) {
