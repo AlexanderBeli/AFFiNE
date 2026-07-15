@@ -20,6 +20,7 @@ import semver from 'semver';
 import { type Server, Socket } from 'socket.io';
 
 import {
+  ActionForbidden,
   CallMetric,
   checkCanaryDateClientVersion,
   DocNotFound,
@@ -952,6 +953,20 @@ class WorkspaceSyncAdapter extends SyncSocketAdapter {
     });
     if (docMeta?.blocked) {
       throw new DocUpdateBlocked({ spaceId, docId });
+    }
+    if (!docMeta) {
+      const docExists = await this.models.doc.exists(spaceId, docId);
+      if (!docExists) {
+        const isStudent = await this.models.userFeature.has(
+          editorId,
+          'gateway-student'
+        );
+        if (isStudent) {
+          throw new ActionForbidden({
+            message: 'Students cannot create documents',
+          });
+        }
+      }
     }
     return await super.push(spaceId, docId, updates, editorId);
   }

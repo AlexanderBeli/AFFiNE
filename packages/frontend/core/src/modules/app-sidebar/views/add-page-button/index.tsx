@@ -23,6 +23,9 @@ import clsx from 'clsx';
 import type React from 'react';
 import { type MouseEvent, useCallback } from 'react';
 
+import { UserFeatureService } from '@affine/core/modules/cloud';
+import { FeatureType } from '@affine/graphql';
+
 import * as styles from './index.css';
 
 /**
@@ -68,9 +71,15 @@ interface AddPageButtonProps {
 const sideBottom = { side: 'bottom' as const };
 export function AddPageButton(props: AddPageButtonProps) {
   const editorSetting = useService(EditorSettingService);
+  const userFeatureService = useService(UserFeatureService);
+  const features = useLiveData(userFeatureService.userFeature.features$);
+  const isStudent = features?.some(f => f === FeatureType.GatewayStudent);
+
   const newDocDefaultMode = useLiveData(
     editorSetting.editorSetting.settings$.selector(s => s.newDocDefaultMode)
   );
+
+  if (isStudent) return null;
 
   return newDocDefaultMode === 'ask' ? (
     <AddPageWithAsk {...props} />

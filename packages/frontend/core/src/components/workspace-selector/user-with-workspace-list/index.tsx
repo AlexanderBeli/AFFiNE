@@ -1,9 +1,13 @@
 import { ScrollableContainer } from '@affine/component';
 import { MenuItem } from '@affine/component/ui/menu';
-import { AuthService, DefaultServerService } from '@affine/core/modules/cloud';
+import {
+  AuthService,
+  DefaultServerService,
+  UserFeatureService,
+} from '@affine/core/modules/cloud';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { type WorkspaceMetadata } from '@affine/core/modules/workspace';
-import { ServerFeature } from '@affine/graphql';
+import { FeatureType, ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { track } from '@affine/track';
 import { Logo1Icon } from '@blocksuite/icons/rc';
@@ -67,6 +71,9 @@ export const UserWithWorkspaceList = ({
   const globalDialogService = useService(GlobalDialogService);
   const session = useLiveData(useService(AuthService).session.session$);
   const defaultServerService = useService(DefaultServerService);
+  const userFeatureService = useService(UserFeatureService);
+  const features = useLiveData(userFeatureService.userFeature.features$);
+  const isStudent = features?.some(f => f === FeatureType.GatewayStudent);
 
   const isAuthenticated = session.status === 'authenticated';
 
@@ -125,12 +132,14 @@ export const UserWithWorkspaceList = ({
           showEnableCloudButton={showEnableCloudButton}
         />
       </ScrollableContainer>
-      <div className={styles.workspaceFooter}>
-        <AddWorkspace
-          onAddWorkspace={onAddWorkspace}
-          onNewWorkspace={onNewWorkspace}
-        />
-      </div>
+      {!isStudent && (
+        <div className={styles.workspaceFooter}>
+          <AddWorkspace
+            onAddWorkspace={onAddWorkspace}
+            onNewWorkspace={onNewWorkspace}
+          />
+        </div>
+      )}
     </>
   );
 };

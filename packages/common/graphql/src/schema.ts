@@ -1413,6 +1413,8 @@ export enum FeatureType {
   TeamPlan = 'TeamPlan',
   UnlimitedCopilot = 'UnlimitedCopilot',
   UnlimitedWorkspace = 'UnlimitedWorkspace',
+  GatewayStudent = 'GatewayStudent',
+  GatewayTeacher = 'GatewayTeacher',
 }
 
 export interface ForkChatSessionInput {
