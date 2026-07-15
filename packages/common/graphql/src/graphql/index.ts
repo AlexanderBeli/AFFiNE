@@ -1971,6 +1971,7 @@ export const getCurrentUserQuery = {
     email
     emailVerified
     avatarUrl
+    features
     token {
       sessionToken
     }
