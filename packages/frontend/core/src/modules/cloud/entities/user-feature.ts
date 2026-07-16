@@ -14,7 +14,7 @@ import { map, switchMap, tap } from 'rxjs';
 
 import { mapRealtimeEnum } from '../realtime/enum';
 import type { AuthService } from '../services/auth';
-import type { GraphQLService } from '../services/graphql';
+import { GraphQLService } from '../services/graphql';
 
 export class UserFeature extends Entity {
   // undefined means no user, null means loading
@@ -27,10 +27,9 @@ export class UserFeature extends Entity {
   isRevalidating$ = new LiveData(false);
   error$ = new LiveData<any | null>(null);
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly gqlService: GraphQLService
-  ) {
+  private readonly gqlService = this.framework.get(GraphQLService);
+
+  constructor(private readonly authService: AuthService) {
     super();
     // Ensure features are loaded even if the AccountChanged event fired
     // before this entity was created (lazy services / SSR).
@@ -52,14 +51,16 @@ export class UserFeature extends Entity {
           const account = this.authService.session.account$.value;
           if (account?.id !== accountId) return;
 
-          const rawFeatures = account.info?.features ?? [];
-
+          const rawFeatures = account.info?.features;
+           
           console.log('[UserFeature] realtime features', {
             userId: account.id,
             rawFeatures,
+            isArray: Array.isArray(rawFeatures),
+            length: Array.isArray(rawFeatures) ? rawFeatures.length : undefined,
           });
           const features =
-            rawFeatures.length > 0
+            Array.isArray(rawFeatures) && rawFeatures.length > 0
               ? rawFeatures.map(feature =>
                   mapRealtimeEnum(FeatureType, feature, 'user feature')
                 )
@@ -83,6 +84,7 @@ export class UserFeature extends Entity {
                   (f: string) => FeatureType[f as keyof typeof FeatureType] ?? f
                 );
 
+                 
                 console.log('[UserFeature] GraphQL fallback features', {
                   userId: data.userId,
                   gqlFeatures,
@@ -93,6 +95,7 @@ export class UserFeature extends Entity {
                   features: gqlFeatures,
                 };
               } catch (e) {
+                 
                 console.error('[UserFeature] GraphQL fallback failed', e);
                 return data;
               }
@@ -100,6 +103,7 @@ export class UserFeature extends Entity {
           }),
           smartRetry(),
           tap(data => {
+             
             console.log('[UserFeature] final features$', data?.features);
             if (data) {
               this.features$.next(data.features);

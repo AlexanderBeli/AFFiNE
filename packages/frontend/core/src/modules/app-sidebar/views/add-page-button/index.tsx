@@ -1,6 +1,7 @@
 import { Button, IconButton, Menu, MenuItem, MenuSub } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { UserFeatureService } from '@affine/core/modules/cloud';
 import { DocsService } from '@affine/core/modules/doc';
 import { EditorSettingService } from '@affine/core/modules/editor-setting';
 import { TemplateDocService } from '@affine/core/modules/template-doc';
@@ -8,6 +9,7 @@ import { TemplateListMenuContentScrollable } from '@affine/core/modules/template
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { inferOpenMode } from '@affine/core/utils';
+import { FeatureType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
 import type { DocMode } from '@blocksuite/affine/model';
@@ -22,9 +24,6 @@ import { useLiveData, useService } from '@toeverything/infra';
 import clsx from 'clsx';
 import type React from 'react';
 import { type MouseEvent, useCallback } from 'react';
-
-import { UserFeatureService } from '@affine/core/modules/cloud';
-import { FeatureType } from '@affine/graphql';
 
 import * as styles from './index.css';
 

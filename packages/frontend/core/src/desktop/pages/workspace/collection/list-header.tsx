@@ -1,6 +1,7 @@
 import { Button, useConfirmModal } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { PageListNewPageButton } from '@affine/core/components/page-list';
+import { UserFeatureService } from '@affine/core/modules/cloud';
 import {
   type Collection,
   CollectionService,
@@ -9,12 +10,11 @@ import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import type { DocRecord } from '@affine/core/modules/doc';
 import { WorkbenchLink } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
-import { UserFeatureService } from '@affine/core/modules/cloud';
+import { FeatureType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
 import type { DocMode } from '@blocksuite/affine/model';
 import { ViewLayersIcon } from '@blocksuite/icons/rc';
-import { FeatureType } from '@affine/graphql';
 import { useLiveData, useService, useServices } from '@toeverything/infra';
 import { useCallback } from 'react';
 
