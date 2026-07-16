@@ -1,4 +1,5 @@
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
 import type { FavoriteSupportTypeUnion } from '@affine/core/modules/favorite';
 import { FavoriteService } from '@affine/core/modules/favorite';
@@ -27,6 +28,7 @@ export const NavigationPanelFavorites = () => {
   const path = useMemo(() => ['favorites'], []);
   const favorites = useLiveData(favoriteService.favoriteList.sortedList$);
   const isLoading = useLiveData(favoriteService.favoriteList.isLoading$);
+  const isGatewayStudent = useIsGatewayStudent();
   const { createPage } = usePageHelper(
     workspaceService.workspace.docCollection
   );
@@ -56,13 +58,15 @@ export const NavigationPanelFavorites = () => {
             parentPath={path}
           />
         ))}
-        <AddItemPlaceholder
-          data-testid="navigation-panel-bar-add-favorite-button"
-          data-event-props="$.navigationPanel.favorites.createDoc"
-          data-event-args-control="addFavorite"
-          onClick={handleCreateNewFavoriteDoc}
-          label={t['New Page']()}
-        />
+        {!isGatewayStudent && (
+          <AddItemPlaceholder
+            data-testid="navigation-panel-bar-add-favorite-button"
+            data-event-props="$.navigationPanel.favorites.createDoc"
+            data-event-args-control="addFavorite"
+            onClick={handleCreateNewFavoriteDoc}
+            label={t['New Page']()}
+          />
+        )}
       </NavigationPanelTreeRoot>
     </CollapsibleSection>
   );

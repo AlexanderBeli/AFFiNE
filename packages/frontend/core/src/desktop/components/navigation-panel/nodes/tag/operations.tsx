@@ -1,5 +1,6 @@
 import { IconButton, MenuItem, MenuSeparator, toast } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { DocsService } from '@affine/core/modules/doc';
 import { FavoriteService } from '@affine/core/modules/favorite';
@@ -82,22 +83,30 @@ export const useNavigationPanelTagNodeOperations = (
     track.$.navigationPanel.organize.openInNewTab({ type: 'tag' });
   }, [tagId, workbenchService]);
 
+  const isGatewayStudent = useIsGatewayStudent();
+
   return useMemo(
     () => [
-      {
-        index: 0,
-        inline: true,
-        view: (
-          <IconButton
-            size="16"
-            onClick={handleNewDoc}
-            data-testid="tag-add-doc-button"
-            tooltip={t['com.affine.rootAppSidebar.explorer.tag-add-tooltip']()}
-          >
-            <PlusIcon />
-          </IconButton>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 0,
+              inline: true,
+              view: (
+                <IconButton
+                  size="16"
+                  onClick={handleNewDoc}
+                  data-testid="tag-add-doc-button"
+                  tooltip={t[
+                    'com.affine.rootAppSidebar.explorer.tag-add-tooltip'
+                  ]()}
+                >
+                  <PlusIcon />
+                </IconButton>
+              ),
+            },
+          ]),
       {
         index: 50,
         view: (
@@ -159,6 +168,7 @@ export const useNavigationPanelTagNodeOperations = (
       handleOpenInNewTab,
       handleOpenInSplitView,
       handleToggleFavoriteTag,
+      isGatewayStudent,
       t,
     ]
   );

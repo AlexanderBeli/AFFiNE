@@ -4,6 +4,7 @@ import {
   useDropTarget,
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import type { FavoriteSupportTypeUnion } from '@affine/core/modules/favorite';
 import {
   FavoriteService,
@@ -48,6 +49,7 @@ export const NavigationPanelFavorites = () => {
   const isLoading = useLiveData(favoriteService.favoriteList.isLoading$);
 
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
 
   const { createPage } = usePageHelper(
     workspaceService.workspace.docCollection
@@ -169,19 +171,21 @@ export const NavigationPanelFavorites = () => {
       headerTestId="navigation-panel-favorite-category-divider"
       actions={
         <>
-          <IconButton
-            data-testid="navigation-panel-bar-add-favorite-button"
-            data-event-props="$.navigationPanel.favorites.createDoc"
-            data-event-args-control="addFavorite"
-            onClick={handleCreateNewFavoriteDoc}
-            onAuxClick={handleCreateNewFavoriteDoc}
-            size="16"
-            tooltip={t[
-              'com.affine.rootAppSidebar.explorer.fav-section-add-tooltip'
-            ]()}
-          >
-            <PlusIcon />
-          </IconButton>
+          {!isGatewayStudent && (
+            <IconButton
+              data-testid="navigation-panel-bar-add-favorite-button"
+              data-event-props="$.navigationPanel.favorites.createDoc"
+              data-event-args-control="addFavorite"
+              onClick={handleCreateNewFavoriteDoc}
+              onAuxClick={handleCreateNewFavoriteDoc}
+              size="16"
+              tooltip={t[
+                'com.affine.rootAppSidebar.explorer.fav-section-add-tooltip'
+              ]()}
+            >
+              <PlusIcon />
+            </IconButton>
+          )}
           {draggedOverDraggable && (
             <DropEffect
               position={draggedOverPosition}

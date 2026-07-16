@@ -6,6 +6,7 @@ import {
   useConfirmModal,
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
@@ -227,18 +228,23 @@ export const useNavigationPanelTagNodeOperationsMenu = (
     handleChangeNameOrColor,
     handleOpenDocSelector,
   } = useNavigationPanelTagNodeOperations(tagId, option);
+  const isGatewayStudent = useIsGatewayStudent();
 
   return useMemo(
     () => [
-      {
-        index: 0,
-        inline: true,
-        view: (
-          <IconButton size="16" onClick={handleNewDoc}>
-            <PlusIcon />
-          </IconButton>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 0,
+              inline: true,
+              view: (
+                <IconButton size="16" onClick={handleNewDoc}>
+                  <PlusIcon />
+                </IconButton>
+              ),
+            },
+          ]),
       {
         index: 10,
         view: (
@@ -314,6 +320,7 @@ export const useNavigationPanelTagNodeOperationsMenu = (
       handleOpenDocSelector,
       handleOpenInSplitView,
       handleToggleFavoriteTag,
+      isGatewayStudent,
       t,
       tagId,
     ]

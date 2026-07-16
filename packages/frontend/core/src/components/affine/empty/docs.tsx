@@ -1,3 +1,4 @@
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { TagService } from '@affine/core/modules/tag';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { inferOpenMode } from '@affine/core/utils';
@@ -33,8 +34,9 @@ export const EmptyDocs = ({
   const currentWorkspace = useService(WorkspaceService).workspace;
   const pageHelper = usePageHelper(currentWorkspace.docCollection);
   const tag = useLiveData(tagService.tagList.tagByTagId$(tagId));
+  const isGatewayStudent = useIsGatewayStudent();
 
-  const showActionButton = type !== 'trash'; // && !BUILD_CONFIG.isMobileEdition;
+  const showActionButton = type !== 'trash' && !isGatewayStudent; // && !BUILD_CONFIG.isMobileEdition;
 
   const onCreate = useCallback(
     (e: MouseEvent) => {

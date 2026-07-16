@@ -1,7 +1,7 @@
 import { Button, IconButton, Menu, MenuItem, MenuSub } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import { UserFeatureService } from '@affine/core/modules/cloud';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { DocsService } from '@affine/core/modules/doc';
 import { EditorSettingService } from '@affine/core/modules/editor-setting';
 import { TemplateDocService } from '@affine/core/modules/template-doc';
@@ -9,7 +9,6 @@ import { TemplateListMenuContentScrollable } from '@affine/core/modules/template
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { inferOpenMode } from '@affine/core/utils';
-import { FeatureType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
 import type { DocMode } from '@blocksuite/affine/model';
@@ -70,12 +69,7 @@ interface AddPageButtonProps {
 const sideBottom = { side: 'bottom' as const };
 export function AddPageButton(props: AddPageButtonProps) {
   const editorSetting = useService(EditorSettingService);
-  const userFeatureService = useService(UserFeatureService);
-  const features = useLiveData(userFeatureService.userFeature.features$);
-  // Hide while features are still loading; only show the button for non-students
-  // once the feature list has resolved.
-  const isStudent =
-    features === null || features?.some(f => f === FeatureType.GatewayStudent);
+  const isStudent = useIsGatewayStudent();
 
   const newDocDefaultMode = useLiveData(
     editorSetting.editorSetting.settings$.selector(s => s.newDocDefaultMode)

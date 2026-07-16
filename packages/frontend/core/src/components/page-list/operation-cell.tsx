@@ -8,6 +8,7 @@ import {
 } from '@affine/component';
 import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
 import { useCatchEventCallback } from '@affine/core/components/hooks/use-catch-event-hook';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { DocsService } from '@affine/core/modules/doc';
 import {
@@ -353,6 +354,7 @@ export const CollectionOperationCell = ({
   );
   const collectionId = collectionMeta.id;
   const { openConfirmModal } = useConfirmModal();
+  const isGatewayStudent = useIsGatewayStudent();
   const favourite = useLiveData(
     favAdapter.isFavorite$(collectionId, 'collection')
   );
@@ -466,12 +468,14 @@ export const CollectionOperationCell = ({
                   ? t['com.affine.favoritePageOperation.remove']()
                   : t['com.affine.favoritePageOperation.add']()}
               </MenuItem>
-              <MenuItem
-                onClick={onConfirmAddDocToCollection}
-                prefixIcon={<PlusIcon />}
-              >
-                {t['New Page']()}
-              </MenuItem>
+              {!isGatewayStudent && (
+                <MenuItem
+                  onClick={onConfirmAddDocToCollection}
+                  prefixIcon={<PlusIcon />}
+                >
+                  {t['New Page']()}
+                </MenuItem>
+              )}
               <MenuItem
                 onClick={handleDelete}
                 prefixIcon={<DeleteIcon />}

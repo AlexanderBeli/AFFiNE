@@ -25,6 +25,7 @@ import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useContext } from 'react';
 
 import { useBlockSuiteMetaHelper } from '../../hooks/affine/use-block-suite-meta-helper';
+import { useIsGatewayStudent } from '../../hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '../../pure/icons';
 import { DocExplorerContext } from '../context';
 
@@ -186,13 +187,14 @@ const MoveToTrash = ({ docId }: DocOperationProps) => {
 };
 
 export const MoreMenuContent = (props: DocOperationProps) => {
+  const isGatewayStudent = useIsGatewayStudent();
   return (
     <>
       <ToggleFavorite {...props} />
       <DocInfo {...props} />
       <NewTab {...props} />
       {BUILD_CONFIG.isElectron ? <SplitView {...props} /> : null}
-      <Duplicate {...props} />
+      {!isGatewayStudent && <Duplicate {...props} />}
       <MoveToTrash {...props} />
     </>
   );

@@ -1,3 +1,4 @@
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
 import { TagService } from '@affine/core/modules/tag';
@@ -28,6 +29,7 @@ export const NavigationPanelTags = () => {
   const path = useMemo(() => ['tags'], []);
   const tags = useLiveData(tagService.tagList.tags$);
   const [showNewTagDialog, setShowNewTagDialog] = useState(false);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const t = useI18n();
 
@@ -54,14 +56,16 @@ export const NavigationPanelTags = () => {
             parentPath={path}
           />
         ))}
-        <AddItemPlaceholder
-          icon={<AddTagIcon />}
-          data-testid="navigation-panel-add-tag-button"
-          onClick={() => setShowNewTagDialog(true)}
-          label={t[
-            'com.affine.rootAppSidebar.explorer.tag-section-add-tooltip'
-          ]()}
-        />
+        {!isGatewayStudent && (
+          <AddItemPlaceholder
+            icon={<AddTagIcon />}
+            data-testid="navigation-panel-add-tag-button"
+            onClick={() => setShowNewTagDialog(true)}
+            label={t[
+              'com.affine.rootAppSidebar.explorer.tag-section-add-tooltip'
+            ]()}
+          />
+        )}
         <TagRenameDialog
           open={showNewTagDialog}
           onOpenChange={setShowNewTagDialog}

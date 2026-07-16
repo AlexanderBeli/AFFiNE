@@ -1,3 +1,4 @@
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
 import { GlobalContextService } from '@affine/core/modules/global-context';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
@@ -125,13 +126,16 @@ export const NavigationPanelTagNodeDocs = ({
 }) => {
   const t = useI18n();
   const tagDocIds = useLiveData(tag.pageIds$);
+  const isGatewayStudent = useIsGatewayStudent();
 
   return (
     <>
       {tagDocIds.map(docId => (
         <NavigationPanelDocNode key={docId} docId={docId} parentPath={path} />
       ))}
-      <AddItemPlaceholder label={t['New Page']()} onClick={onNewDoc} />
+      {!isGatewayStudent && (
+        <AddItemPlaceholder label={t['New Page']()} onClick={onNewDoc} />
+      )}
     </>
   );
 };

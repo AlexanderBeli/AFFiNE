@@ -1,5 +1,6 @@
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { DocsService } from '@affine/core/modules/doc';
 import { TemplateDocService } from '@affine/core/modules/template-doc';
 import { WorkbenchService } from '@affine/core/modules/workbench';
@@ -26,6 +27,8 @@ export const AppTabCreate = ({ tab }: AppTabCustomFCProps) => {
     templateDocService.setting.pageTemplateDocId$
   );
 
+  const isGatewayStudent = useIsGatewayStudent();
+
   const createPage = useAsyncCallback(
     async (isActive: boolean) => {
       if (isActive) return;
@@ -41,6 +44,10 @@ export const AppTabCreate = ({ tab }: AppTabCustomFCProps) => {
     },
     [docsService, enablePageTemplate, pageHelper, pageTemplateDocId, workbench]
   );
+
+  if (isGatewayStudent) {
+    return null;
+  }
 
   return (
     <TabItem id={tab.key} onClick={createPage} label="New Page">

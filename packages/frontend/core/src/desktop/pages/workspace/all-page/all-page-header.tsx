@@ -5,16 +5,15 @@ import { ViewToggle } from '@affine/core/components/explorer/display-menu/view-t
 import type { DocListItemView } from '@affine/core/components/explorer/docs-view/doc-list-item';
 import { ExplorerNavigation } from '@affine/core/components/explorer/header/navigation';
 import type { ExplorerDisplayPreference } from '@affine/core/components/explorer/types';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { PageListNewPageButton } from '@affine/core/components/page-list/docs/page-list-new-page-button';
-import { UserFeatureService } from '@affine/core/modules/cloud';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { inferOpenMode } from '@affine/core/utils';
-import { FeatureType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useService } from '@toeverything/infra';
 import { useCallback } from 'react';
 
 import * as styles from './all-page-header.css';
@@ -45,12 +44,7 @@ export const AllDocsHeader = ({
   const workspaceDialogService = useService(WorkspaceDialogService);
   const workbenchService = useService(WorkbenchService);
   const workbench = workbenchService.workbench;
-  const userFeatureService = useService(UserFeatureService);
-  const features = useLiveData(userFeatureService.userFeature.features$);
-  // Hide while features are still loading; only show the button for non-students
-  // once the feature list has resolved.
-  const isStudent =
-    features === null || features?.some(f => f === FeatureType.GatewayStudent);
+  const isStudent = useIsGatewayStudent();
   const { createEdgeless, createPage } = usePageHelper(
     workspaceService.workspace.docCollection
   );

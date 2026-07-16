@@ -1,4 +1,5 @@
 import { MenuItem, notify } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
 import {
   type Collection,
@@ -136,6 +137,7 @@ const NavigationPanelCollectionNodeChildren = ({
   }, [shareDocsListService]);
 
   const allowList = useLiveData(collection.allowList$);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const handleRemoveFromAllowList = useCallback(
     (id: string) => {
@@ -184,7 +186,9 @@ const NavigationPanelCollectionNodeChildren = ({
           }
         />
       ))}
-      <AddItemPlaceholder label={t['New Page']()} onClick={onAddDoc} />
+      {!isGatewayStudent && (
+        <AddItemPlaceholder label={t['New Page']()} onClick={onAddDoc} />
+      )}
     </>
   );
 };

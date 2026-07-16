@@ -8,8 +8,9 @@ import {
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { Guard } from '@affine/core/components/guard';
 import { useAppSettingHelper } from '@affine/core/components/hooks/affine/use-app-setting-helper';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { DocsService } from '@affine/core/modules/doc';
 import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
@@ -70,6 +71,7 @@ export const useNavigationPanelDocNodeOperations = (
   );
 
   const { duplicate } = useBlockSuiteMetaHelper();
+  const isGatewayStudent = useIsGatewayStudent();
   const handleDuplicate = useCallback(() => {
     duplicate(docId, true);
     track.$.navigationPanel.docs.createDoc();
@@ -151,7 +153,7 @@ export const useNavigationPanelDocNodeOperations = (
 
   return useMemo(
     () => [
-      ...(appSettings.showLinkedDocInSidebar
+      ...(appSettings.showLinkedDocInSidebar && !isGatewayStudent
         ? [
             {
               index: 0,
@@ -182,27 +184,42 @@ export const useNavigationPanelDocNodeOperations = (
           </MenuItem>
         ),
       },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 99,
+              view: (
+                <Guard docId={docId} permission="Doc_Update">
+                  {canEdit => (
+                    <MenuItem
+                      prefixIcon={<LinkedPageIcon />}
+                      onClick={handleAddLinkedPage}
+                      disabled={!canEdit}
+                    >
+                      {t['com.affine.page-operation.add-linked-page']()}
+                    </MenuItem>
+                  )}
+                </Guard>
+              ),
+            },
+            {
+              index: 99,
+              view: (
+                <MenuItem
+                  prefixIcon={<DuplicateIcon />}
+                  onClick={handleDuplicate}
+                >
+                  {t['com.affine.header.option.duplicate']()}
+                </MenuItem>
+              ),
+            },
+          ]),
       {
         index: 99,
         view: (
-          <Guard docId={docId} permission="Doc_Update">
-            {canEdit => (
-              <MenuItem
-                prefixIcon={<LinkedPageIcon />}
-                onClick={handleAddLinkedPage}
-                disabled={!canEdit}
-              >
-                {t['com.affine.page-operation.add-linked-page']()}
-              </MenuItem>
-            )}
-          </Guard>
-        ),
-      },
-      {
-        index: 99,
-        view: (
-          <MenuItem prefixIcon={<DuplicateIcon />} onClick={handleDuplicate}>
-            {t['com.affine.header.option.duplicate']()}
+          <MenuItem prefixIcon={<OpenInNewIcon />} onClick={handleOpenInNewTab}>
+            {t['com.affine.workbench.tab.page-menu-open']()}
           </MenuItem>
         ),
       },
@@ -276,6 +293,7 @@ export const useNavigationPanelDocNodeOperations = (
       handleOpenInSplitView,
       handleOpenInfoModal,
       handleToggleFavoriteDoc,
+      isGatewayStudent,
       t,
     ]
   );

@@ -10,6 +10,7 @@ import {
   notify,
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
@@ -197,6 +198,7 @@ const NavigationPanelFolderNodeFolder = ({
       WorkspaceDialogService,
     });
   const navigationPanelService = useService(NavigationPanelService);
+  const isGatewayStudent = useIsGatewayStudent();
   const name = useLiveData(node.name$);
   const enableEmojiIcon = useLiveData(
     featureFlagService.flags.enable_emoji_folder_icon.$
@@ -650,72 +652,84 @@ const NavigationPanelFolderNodeFolder = ({
   );
 
   const folderOperations = useMemo(() => {
-    return [
-      {
-        index: 0,
-        inline: true,
-        view: (
-          <IconButton
-            size="16"
-            onClick={handleNewDoc}
-            tooltip={t[
-              'com.affine.rootAppSidebar.explorer.organize-add-tooltip'
-            ]()}
-          >
-            <PlusIcon />
-          </IconButton>
-        ),
-      },
-      {
-        index: 100,
-        view: (
-          <MenuItem prefixIcon={<FolderIcon />} onClick={handleCreateSubfolder}>
-            {t['com.affine.rootAppSidebar.organize.folder.create-subfolder']()}
-          </MenuItem>
-        ),
-      },
-      {
-        index: 101,
-        view: (
-          <MenuItem
-            prefixIcon={<PageIcon />}
-            onClick={() => handleAddToFolder('doc')}
-          >
-            {t['com.affine.rootAppSidebar.organize.folder.add-docs']()}
-          </MenuItem>
-        ),
-      },
-      {
-        index: 102,
-        view: (
-          <MenuSub
-            triggerOptions={{
-              prefixIcon: <PlusThickIcon />,
-            }}
-            items={
-              <>
-                <MenuItem
-                  onClick={() => handleAddToFolder('tag')}
-                  prefixIcon={<TagsIcon />}
-                >
-                  {t['com.affine.rootAppSidebar.organize.folder.add-tags']()}
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAddToFolder('collection')}
-                  prefixIcon={<AnimatedCollectionsIcon closed={false} />}
-                >
-                  {t[
-                    'com.affine.rootAppSidebar.organize.folder.add-collections'
-                  ]()}
-                </MenuItem>
-              </>
-            }
-          >
-            {t['com.affine.rootAppSidebar.organize.folder.add-others']()}
-          </MenuSub>
-        ),
-      },
+    const createOperations = isGatewayStudent
+      ? []
+      : [
+          {
+            index: 0,
+            inline: true,
+            view: (
+              <IconButton
+                size="16"
+                onClick={handleNewDoc}
+                tooltip={t[
+                  'com.affine.rootAppSidebar.explorer.organize-add-tooltip'
+                ]()}
+              >
+                <PlusIcon />
+              </IconButton>
+            ),
+          },
+          {
+            index: 100,
+            view: (
+              <MenuItem
+                prefixIcon={<FolderIcon />}
+                onClick={handleCreateSubfolder}
+              >
+                {t[
+                  'com.affine.rootAppSidebar.organize.folder.create-subfolder'
+                ]()}
+              </MenuItem>
+            ),
+          },
+          {
+            index: 101,
+            view: (
+              <MenuItem
+                prefixIcon={<PageIcon />}
+                onClick={() => handleAddToFolder('doc')}
+              >
+                {t['com.affine.rootAppSidebar.organize.folder.add-docs']()}
+              </MenuItem>
+            ),
+          },
+          {
+            index: 102,
+            view: (
+              <MenuSub
+                triggerOptions={{
+                  prefixIcon: <PlusThickIcon />,
+                }}
+                items={
+                  <>
+                    <MenuItem
+                      onClick={() => handleAddToFolder('tag')}
+                      prefixIcon={<TagsIcon />}
+                    >
+                      {t[
+                        'com.affine.rootAppSidebar.organize.folder.add-tags'
+                      ]()}
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => handleAddToFolder('collection')}
+                      prefixIcon={<AnimatedCollectionsIcon closed={false} />}
+                    >
+                      {t[
+                        'com.affine.rootAppSidebar.organize.folder.add-collections'
+                      ]()}
+                    </MenuItem>
+                  </>
+                }
+              >
+                {t['com.affine.rootAppSidebar.organize.folder.add-others']()}
+              </MenuSub>
+            ),
+          },
+        ];
 
+    return [
+      ...createOperations,
       {
         index: 200,
         view: node.id ? <FavoriteFolderOperation id={node.id} /> : null,
@@ -743,6 +757,7 @@ const NavigationPanelFolderNodeFolder = ({
     handleCreateSubfolder,
     handleDelete,
     handleNewDoc,
+    isGatewayStudent,
     node,
     t,
   ]);

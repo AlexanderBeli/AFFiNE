@@ -1,5 +1,6 @@
 import { IconButton } from '@affine/component';
 import { RenameModal } from '@affine/component/rename-modal';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
 import { TagService } from '@affine/core/modules/tag';
 import { useI18n } from '@affine/i18n';
@@ -25,6 +26,7 @@ export const NavigationPanelTags = () => {
   const tags = useLiveData(tagService.tagList.tags$);
 
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
 
   const handleCreateNewTag = useCallback(
     (name: string) => {
@@ -50,26 +52,28 @@ export const NavigationPanelTags = () => {
       headerClassName={styles.draggedOverHighlight}
       title={t['com.affine.rootAppSidebar.tags']()}
       actions={
-        <div className={styles.iconContainer}>
-          <IconButton
-            data-testid="navigation-panel-bar-add-tag-button"
-            onClick={handleOpenCreateModal}
-            size="16"
-            tooltip={t[
-              'com.affine.rootAppSidebar.explorer.tag-section-add-tooltip'
-            ]()}
-          >
-            <AddTagIcon />
-          </IconButton>
-          {creating && (
-            <RenameModal
-              open
-              onOpenChange={setCreating}
-              onRename={handleCreateNewTag}
-              currentName={t['com.affine.rootAppSidebar.tags.new-tag']()}
-            />
-          )}
-        </div>
+        isGatewayStudent ? null : (
+          <div className={styles.iconContainer}>
+            <IconButton
+              data-testid="navigation-panel-bar-add-tag-button"
+              onClick={handleOpenCreateModal}
+              size="16"
+              tooltip={t[
+                'com.affine.rootAppSidebar.explorer.tag-section-add-tooltip'
+              ]()}
+            >
+              <AddTagIcon />
+            </IconButton>
+            {creating && (
+              <RenameModal
+                open
+                onOpenChange={setCreating}
+                onRename={handleCreateNewTag}
+                currentName={t['com.affine.rootAppSidebar.tags.new-tag']()}
+              />
+            )}
+          </div>
+        )
       }
     >
       <NavigationPanelTreeRoot placeholder={<RootEmpty />}>

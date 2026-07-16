@@ -1,4 +1,5 @@
 // Import is already correct, no changes needed
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import {
   AddPageButton,
   AppDownloadButton,
@@ -132,6 +133,7 @@ export const RootAppSidebar = memo((): ReactElement => {
 
   const sessionStatus = useLiveData(authService.session.status$);
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
   const workspaceDialogService = useService(WorkspaceDialogService);
   const workbench = workbenchService.workbench;
   const workspaceSelectorOpen = useLiveData(workbench.workspaceSelectorOpen$);
@@ -237,15 +239,17 @@ export const RootAppSidebar = memo((): ReactElement => {
           contentStyle={{ padding: '6px 8px 0 8px' }}
         >
           <TrashButton />
-          <MenuItem
-            data-testid="slider-bar-import-button"
-            icon={<ImportIcon />}
-            onClick={onOpenImportModal}
-          >
-            <span data-testid="import-modal-trigger">{t['Import']()}</span>
-          </MenuItem>
+          {isGatewayStudent ? null : (
+            <MenuItem
+              data-testid="slider-bar-import-button"
+              icon={<ImportIcon />}
+              onClick={onOpenImportModal}
+            >
+              <span data-testid="import-modal-trigger">{t['Import']()}</span>
+            </MenuItem>
+          )}
           <InviteMembersButton />
-          <TemplateDocEntrance />
+          {isGatewayStudent ? null : <TemplateDocEntrance />}
           <ExternalMenuLinkItem
             href="https://affine.pro/blog?tag=Release+Note"
             icon={<JournalIcon />}

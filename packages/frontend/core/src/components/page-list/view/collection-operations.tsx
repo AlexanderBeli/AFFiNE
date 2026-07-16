@@ -1,5 +1,6 @@
 import type { MenuItemProps } from '@affine/component';
 import { Menu, MenuItem, usePromptModal } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
 import { WorkbenchService } from '@affine/core/modules/workbench';
@@ -98,6 +99,7 @@ export const CollectionOperations = ({
       [collection.id, favAdapter]
     )
   );
+  const isGatewayStudent = useIsGatewayStudent();
 
   const actions = useMemo<
     Array<
@@ -124,7 +126,7 @@ export const CollectionOperations = ({
         name: t['com.affine.collection.menu.edit'](),
         click: showEdit,
       },
-      ...(onAddDocToCollection
+      ...(onAddDocToCollection && !isGatewayStudent
         ? [
             {
               icon: <PlusIcon />,
@@ -177,6 +179,7 @@ export const CollectionOperations = ({
       openCollectionSplitView,
       service,
       collection.id,
+      isGatewayStudent,
     ]
   );
   return (

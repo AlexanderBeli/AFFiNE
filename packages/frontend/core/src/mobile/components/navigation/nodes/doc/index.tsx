@@ -1,5 +1,6 @@
 import { Loading } from '@affine/component';
 import { Guard } from '@affine/core/components/guard';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { DocsService } from '@affine/core/modules/doc';
@@ -78,6 +79,7 @@ export const NavigationPanelDocNode = ({
 
   const docTitle = useLiveData(docDisplayMetaService.title$(docId));
   const isInTrash = useLiveData(docRecord?.trash$);
+  const isGatewayStudent = useIsGatewayStudent();
   const enableEmojiIcon = useLiveData(
     featureFlagService.flags.enable_emoji_doc_icon.$
   );
@@ -185,7 +187,7 @@ export const NavigationPanelDocNode = ({
       </Guard>
       <Guard docId={docId} permission="Doc_Update">
         {canEdit =>
-          canEdit ? (
+          canEdit && !isGatewayStudent ? (
             <AddItemPlaceholder
               label={t['com.affine.rootAppSidebar.explorer.doc-add-tooltip']()}
               onClick={handleAddLinkedPage}

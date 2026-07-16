@@ -7,6 +7,7 @@ import {
   notify,
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import type {
   NavigationPanelTreeNodeIcon,
   NodeOperation,
@@ -150,6 +151,7 @@ const NavigationPanelFolderNodeFolder = ({
   const enableEmojiIcon = useLiveData(
     featureFlagService.flags.enable_emoji_folder_icon.$
   );
+  const isGatewayStudent = useIsGatewayStudent();
   const navigationPanelService = useService(NavigationPanelService);
   const path = useMemo(
     () => [...parentPath, `folder-${node.id}`],
@@ -261,21 +263,25 @@ const NavigationPanelFolderNodeFolder = ({
 
   const folderOperations = useMemo(() => {
     return [
-      {
-        index: 0,
-        inline: true,
-        view: (
-          <IconButton
-            size="16"
-            onClick={handleNewDoc}
-            tooltip={t[
-              'com.affine.rootAppSidebar.explorer.organize-add-tooltip'
-            ]()}
-          >
-            <PlusIcon />
-          </IconButton>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 0,
+              inline: true,
+              view: (
+                <IconButton
+                  size="16"
+                  onClick={handleNewDoc}
+                  tooltip={t[
+                    'com.affine.rootAppSidebar.explorer.organize-add-tooltip'
+                  ]()}
+                >
+                  <PlusIcon />
+                </IconButton>
+              ),
+            },
+          ]),
       {
         index: 98,
         view: (
@@ -292,61 +298,69 @@ const NavigationPanelFolderNodeFolder = ({
         index: 99,
         view: <MenuSeparator />,
       },
-      {
-        index: 100,
-        view: (
-          <FolderRenameSubMenu
-            text={t[
-              'com.affine.rootAppSidebar.organize.folder.create-subfolder'
-            ]()}
-            title={t[
-              'com.affine.rootAppSidebar.organize.folder.create-subfolder'
-            ]()}
-            onConfirm={handleCreateSubfolder}
-            descRenderer={createSubTipRenderer}
-            icon={<FolderIcon />}
-            menuProps={{
-              triggerOptions: { 'data-testid': 'create-subfolder' },
-            }}
-          />
-        ),
-      },
-      {
-        index: 102,
-        view: (
-          <MenuSub
-            triggerOptions={{
-              prefixIcon: <PlusThickIcon />,
-            }}
-            items={
-              <>
-                <MenuItem
-                  prefixIcon={<PageIcon />}
-                  onClick={() => handleAddToFolder('doc')}
-                >
-                  {t['com.affine.rootAppSidebar.organize.folder.add-docs']()}
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAddToFolder('tag')}
-                  prefixIcon={<TagsIcon />}
-                >
-                  {t['com.affine.rootAppSidebar.organize.folder.add-tags']()}
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleAddToFolder('collection')}
-                  prefixIcon={<LayerIcon />}
-                >
-                  {t[
-                    'com.affine.rootAppSidebar.organize.folder.add-collections'
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 100,
+              view: (
+                <FolderRenameSubMenu
+                  text={t[
+                    'com.affine.rootAppSidebar.organize.folder.create-subfolder'
                   ]()}
-                </MenuItem>
-              </>
-            }
-          >
-            {t['com.affine.rootAppSidebar.organize.folder.add-others']()}
-          </MenuSub>
-        ),
-      },
+                  title={t[
+                    'com.affine.rootAppSidebar.organize.folder.create-subfolder'
+                  ]()}
+                  onConfirm={handleCreateSubfolder}
+                  descRenderer={createSubTipRenderer}
+                  icon={<FolderIcon />}
+                  menuProps={{
+                    triggerOptions: { 'data-testid': 'create-subfolder' },
+                  }}
+                />
+              ),
+            },
+            {
+              index: 102,
+              view: (
+                <MenuSub
+                  triggerOptions={{
+                    prefixIcon: <PlusThickIcon />,
+                  }}
+                  items={
+                    <>
+                      <MenuItem
+                        prefixIcon={<PageIcon />}
+                        onClick={() => handleAddToFolder('doc')}
+                      >
+                        {t[
+                          'com.affine.rootAppSidebar.organize.folder.add-docs'
+                        ]()}
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => handleAddToFolder('tag')}
+                        prefixIcon={<TagsIcon />}
+                      >
+                        {t[
+                          'com.affine.rootAppSidebar.organize.folder.add-tags'
+                        ]()}
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => handleAddToFolder('collection')}
+                        prefixIcon={<LayerIcon />}
+                      >
+                        {t[
+                          'com.affine.rootAppSidebar.organize.folder.add-collections'
+                        ]()}
+                      </MenuItem>
+                    </>
+                  }
+                >
+                  {t['com.affine.rootAppSidebar.organize.folder.add-others']()}
+                </MenuSub>
+              ),
+            },
+          ]),
 
       {
         index: 200,
@@ -377,6 +391,7 @@ const NavigationPanelFolderNodeFolder = ({
     handleDelete,
     handleNewDoc,
     handleRename,
+    isGatewayStudent,
     name,
     node.id,
     t,
@@ -445,11 +460,13 @@ const NavigationPanelFolderNodeFolder = ({
           parentPath={path}
         />
       ))}
-      <AddItemPlaceholder
-        label={t['com.affine.rootAppSidebar.organize.folder.new-doc']()}
-        onClick={handleNewDoc}
-        data-testid="new-folder-in-folder-button"
-      />
+      {!isGatewayStudent && (
+        <AddItemPlaceholder
+          label={t['com.affine.rootAppSidebar.organize.folder.new-doc']()}
+          onClick={handleNewDoc}
+          data-testid="new-folder-in-folder-button"
+        />
+      )}
     </NavigationPanelTreeNode>
   );
 };

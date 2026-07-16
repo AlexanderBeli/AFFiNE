@@ -7,8 +7,9 @@ import {
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
 import { Guard } from '@affine/core/components/guard';
-import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import type { NodeOperation } from '@affine/core/desktop/components/navigation-panel';
 import { DocsService } from '@affine/core/modules/doc';
@@ -177,6 +178,7 @@ export const useNavigationPanelDocNodeOperationsMenu = (
     handleMoveToTrash,
     handleRename,
   } = useNavigationPanelDocNodeOperations(docId, options);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const docService = useService(DocsService);
   const docRecord = useLiveData(docService.list.doc$(docId));
@@ -221,22 +223,26 @@ export const useNavigationPanelDocNodeOperationsMenu = (
           </MenuSub>
         ),
       },
-      {
-        index: 97,
-        view: (
-          <Guard docId={docId} permission="Doc_Update">
-            {canEdit => (
-              <MenuItem
-                prefixIcon={<LinkedPageIcon />}
-                onClick={handleAddLinkedPage}
-                disabled={!canEdit}
-              >
-                {t['com.affine.page-operation.add-linked-page']()}
-              </MenuItem>
-            )}
-          </Guard>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 97,
+              view: (
+                <Guard docId={docId} permission="Doc_Update">
+                  {canEdit => (
+                    <MenuItem
+                      prefixIcon={<LinkedPageIcon />}
+                      onClick={handleAddLinkedPage}
+                      disabled={!canEdit}
+                    >
+                      {t['com.affine.page-operation.add-linked-page']()}
+                    </MenuItem>
+                  )}
+                </Guard>
+              ),
+            },
+          ]),
       {
         index: 98,
         view: (
@@ -297,6 +303,7 @@ export const useNavigationPanelDocNodeOperationsMenu = (
       handleOpenInNewTab,
       handleRename,
       handleToggleFavoriteDoc,
+      isGatewayStudent,
       t,
       title,
     ]

@@ -10,6 +10,7 @@ import { useGuard } from '@affine/core/components/guard';
 import { useBlockSuiteMetaHelper } from '@affine/core/components/hooks/affine/use-block-suite-meta-helper';
 import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
 import { useExportPage } from '@affine/core/components/hooks/affine/use-export-page';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { Export, MoveToTrash } from '@affine/core/components/page-list';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { useDetailPageHeaderResponsive } from '@affine/core/desktop/pages/workspace/detail-page/use-header-responsive';
@@ -155,6 +156,7 @@ const PageHeaderMenuItem = ({
   const { favorite, toggleFavorite } = useFavorite(pageId);
 
   const { duplicate } = useBlockSuiteMetaHelper();
+  const isGatewayStudent = useIsGatewayStudent();
 
   const view = useService(ViewService).view;
 
@@ -424,7 +426,7 @@ const PageHeaderMenuItem = ({
         {t['com.affine.history.view-history-version']()}
       </MenuItem>
       <MenuSeparator />
-      {!isJournal && (
+      {!isJournal && !isGatewayStudent && (
         <MenuItem
           prefixIcon={<DuplicateIcon />}
           data-testid="editor-option-menu-duplicate"
@@ -433,13 +435,15 @@ const PageHeaderMenuItem = ({
           {t['com.affine.header.option.duplicate']()}
         </MenuItem>
       )}
-      <MenuItem
-        prefixIcon={<ImportIcon />}
-        data-testid="editor-option-menu-import"
-        onSelect={handleOpenImportModal}
-      >
-        {t['Import']()}
-      </MenuItem>
+      {!isGatewayStudent && (
+        <MenuItem
+          prefixIcon={<ImportIcon />}
+          data-testid="editor-option-menu-import"
+          onSelect={handleOpenImportModal}
+        >
+          {t['Import']()}
+        </MenuItem>
+      )}
       <Export exportHandler={exportHandler} pageMode={currentMode} />
       <MenuSeparator />
       <MoveToTrash

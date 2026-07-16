@@ -117,9 +117,6 @@ export class UserRealtimeProvider
     const serialized = rawFeatures
       .filter(feature => available.has(feature))
       .map(feature => this.serializeFeature(feature));
-    this.logger.log(
-      `[getProfile] userId=${userId} rawFeatures=${rawFeatures.join(',')} serialized=${serialized.join(',')}`
-    );
     return {
       id: current.id,
       name: current.name,

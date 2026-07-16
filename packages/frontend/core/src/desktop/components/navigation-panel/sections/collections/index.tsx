@@ -1,4 +1,5 @@
 import { IconButton, usePromptModal } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { CollectionService } from '@affine/core/modules/collection';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
 import { WorkbenchService } from '@affine/core/modules/workbench';
@@ -25,6 +26,7 @@ export const NavigationPanelCollections = () => {
   const collections = useLiveData(collectionService.collections$);
   const { openPromptModal } = usePromptModal();
   const path = useMemo(() => ['collections'], []);
+  const isGatewayStudent = useIsGatewayStudent();
   const handleCreateCollection = useCallback(() => {
     openPromptModal({
       title: t['com.affine.editCollection.saveCollection'](),
@@ -66,20 +68,28 @@ export const NavigationPanelCollections = () => {
       testId="navigation-panel-collections"
       title={t['com.affine.rootAppSidebar.collections']()}
       actions={
-        <IconButton
-          data-testid="navigation-panel-bar-add-collection-button"
-          onClick={handleCreateCollection}
-          size="16"
-          tooltip={t[
-            'com.affine.rootAppSidebar.explorer.collection-section-add-tooltip'
-          ]()}
-        >
-          <AddCollectionIcon />
-        </IconButton>
+        isGatewayStudent ? null : (
+          <IconButton
+            data-testid="navigation-panel-bar-add-collection-button"
+            onClick={handleCreateCollection}
+            size="16"
+            tooltip={t[
+              'com.affine.rootAppSidebar.explorer.collection-section-add-tooltip'
+            ]()}
+          >
+            <AddCollectionIcon />
+          </IconButton>
+        )
       }
     >
       <NavigationPanelTreeRoot
-        placeholder={<RootEmpty onClickCreate={handleCreateCollection} />}
+        placeholder={
+          isGatewayStudent ? (
+            <RootEmpty />
+          ) : (
+            <RootEmpty onClickCreate={handleCreateCollection} />
+          )
+        }
       >
         {Array.from(collections.values()).map(collection => (
           <NavigationPanelCollectionNode

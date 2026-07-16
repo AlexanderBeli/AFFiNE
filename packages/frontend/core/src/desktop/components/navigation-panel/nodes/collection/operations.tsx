@@ -5,6 +5,7 @@ import {
   useConfirmModal,
 } from '@affine/component';
 import { usePageHelper } from '@affine/core/blocksuite/block-suite-page-list/utils';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { CollectionService } from '@affine/core/modules/collection';
 import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
@@ -109,24 +110,30 @@ export const useNavigationPanelCollectionNodeOperations = (
     track.$.navigationPanel.collections.editCollection();
   }, [onOpenEdit]);
 
+  const isGatewayStudent = useIsGatewayStudent();
+
   return useMemo(
     () => [
-      {
-        index: 0,
-        inline: true,
-        view: (
-          <IconButton
-            size="16"
-            data-testid="collection-add-doc-button"
-            onClick={handleAddDocToCollection}
-            tooltip={t[
-              'com.affine.rootAppSidebar.explorer.collection-add-tooltip'
-            ]()}
-          >
-            <PlusIcon />
-          </IconButton>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 0,
+              inline: true,
+              view: (
+                <IconButton
+                  size="16"
+                  data-testid="collection-add-doc-button"
+                  onClick={handleAddDocToCollection}
+                  tooltip={t[
+                    'com.affine.rootAppSidebar.explorer.collection-add-tooltip'
+                  ]()}
+                >
+                  <PlusIcon />
+                </IconButton>
+              ),
+            },
+          ]),
       {
         index: 103,
         view: (
@@ -135,17 +142,21 @@ export const useNavigationPanelCollectionNodeOperations = (
           </MenuItem>
         ),
       },
-      {
-        index: 102,
-        view: (
-          <MenuItem
-            prefixIcon={<PlusIcon />}
-            onClick={handleAddDocToCollection}
-          >
-            {t['New Page']()}
-          </MenuItem>
-        ),
-      },
+      ...(isGatewayStudent
+        ? []
+        : [
+            {
+              index: 102,
+              view: (
+                <MenuItem
+                  prefixIcon={<PlusIcon />}
+                  onClick={handleAddDocToCollection}
+                >
+                  {t['New Page']()}
+                </MenuItem>
+              ),
+            },
+          ]),
       {
         index: 101,
         view: (
@@ -208,6 +219,7 @@ export const useNavigationPanelCollectionNodeOperations = (
       handleOpenInSplitView,
       handleShowEdit,
       handleToggleFavoriteCollection,
+      isGatewayStudent,
       t,
     ]
   );

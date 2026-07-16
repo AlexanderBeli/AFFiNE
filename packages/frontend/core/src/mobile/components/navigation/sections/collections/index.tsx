@@ -1,4 +1,5 @@
 import { usePromptModal } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
 import { CollectionService } from '@affine/core/modules/collection';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
@@ -25,6 +26,7 @@ export const NavigationPanelCollections = () => {
   const path = useMemo(() => ['collections'], []);
   const collectionMetas = useLiveData(collectionService.collectionMetas$);
   const { openPromptModal } = usePromptModal();
+  const isGatewayStudent = useIsGatewayStudent();
 
   const handleCreateCollection = useCallback(() => {
     openPromptModal({
@@ -75,12 +77,14 @@ export const NavigationPanelCollections = () => {
             parentPath={path}
           />
         ))}
-        <AddItemPlaceholder
-          icon={<AddCollectionIcon />}
-          data-testid="navigation-panel-bar-add-collection-button"
-          label={t['com.affine.rootAppSidebar.collection.new']()}
-          onClick={() => handleCreateCollection()}
-        />
+        {!isGatewayStudent && (
+          <AddItemPlaceholder
+            icon={<AddCollectionIcon />}
+            data-testid="navigation-panel-bar-add-collection-button"
+            label={t['com.affine.rootAppSidebar.collection.new']()}
+            onClick={() => handleCreateCollection()}
+          />
+        )}
       </NavigationPanelTreeRoot>
     </CollapsibleSection>
   );

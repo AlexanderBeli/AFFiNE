@@ -4,6 +4,7 @@ import {
   IconButton,
   toast,
 } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
 import {
   type FolderNode,
@@ -37,6 +38,7 @@ export const NavigationPanelOrganize = () => {
 
   const folders = useLiveData(rootFolder.sortedChildren$);
   const isLoading = useLiveData(folderTree.isLoading$);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const handleCreateFolder = useCallback(() => {
     const newFolderId = rootFolder.createFolder(
@@ -107,22 +109,24 @@ export const NavigationPanelOrganize = () => {
       path={path}
       title={t['com.affine.rootAppSidebar.organize']()}
       actions={
-        <IconButton
-          data-testid="navigation-panel-bar-add-organize-button"
-          onClick={handleCreateFolder}
-          size="16"
-          tooltip={t[
-            'com.affine.rootAppSidebar.explorer.organize-section-add-tooltip'
-          ]()}
-        >
-          <AddOrganizeIcon />
-        </IconButton>
+        !isGatewayStudent && (
+          <IconButton
+            data-testid="navigation-panel-bar-add-organize-button"
+            onClick={handleCreateFolder}
+            size="16"
+            tooltip={t[
+              'com.affine.rootAppSidebar.explorer.organize-section-add-tooltip'
+            ]()}
+          >
+            <AddOrganizeIcon />
+          </IconButton>
+        )
       }
     >
       <NavigationPanelTreeRoot
         placeholder={
           <RootEmpty
-            onClickCreate={handleCreateFolder}
+            onClickCreate={isGatewayStudent ? undefined : handleCreateFolder}
             isLoading={isLoading}
             onDrop={createFolderAndDrop}
           />

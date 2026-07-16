@@ -1,4 +1,5 @@
 import { Skeleton } from '@affine/component';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { NavigationPanelTreeRoot } from '@affine/core/desktop/components/navigation-panel';
 import { NavigationPanelService } from '@affine/core/modules/navigation-panel';
 import { OrganizeService } from '@affine/core/modules/organize';
@@ -28,6 +29,7 @@ export const NavigationPanelOrganize = () => {
 
   const folders = useLiveData(rootFolder.sortedChildren$);
   const isLoading = useLiveData(folderTree.isLoading$);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const handleCreateFolder = useCallback(
     (name: string) => {
@@ -56,12 +58,14 @@ export const NavigationPanelOrganize = () => {
             parentPath={path}
           />
         ))}
-        <AddItemPlaceholder
-          icon={<AddOrganizeIcon />}
-          data-testid="navigation-panel-bar-add-organize-button"
-          label={t['com.affine.rootAppSidebar.organize.add-folder']()}
-          onClick={() => setOpenNewFolderDialog(true)}
-        />
+        {!isGatewayStudent && (
+          <AddItemPlaceholder
+            icon={<AddOrganizeIcon />}
+            data-testid="navigation-panel-bar-add-organize-button"
+            label={t['com.affine.rootAppSidebar.organize.add-folder']()}
+            onClick={() => setOpenNewFolderDialog(true)}
+          />
+        )}
       </NavigationPanelTreeRoot>
       <FolderRenameDialog
         open={openNewFolderDialog}

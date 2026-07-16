@@ -52,13 +52,6 @@ export class UserFeature extends Entity {
           if (account?.id !== accountId) return;
 
           const rawFeatures = account.info?.features;
-           
-          console.log('[UserFeature] realtime features', {
-            userId: account.id,
-            rawFeatures,
-            isArray: Array.isArray(rawFeatures),
-            length: Array.isArray(rawFeatures) ? rawFeatures.length : undefined,
-          });
           const features =
             Array.isArray(rawFeatures) && rawFeatures.length > 0
               ? rawFeatures.map(feature =>
@@ -83,28 +76,17 @@ export class UserFeature extends Entity {
                 const gqlFeatures = (res.currentUser?.features ?? []).map(
                   (f: string) => FeatureType[f as keyof typeof FeatureType] ?? f
                 );
-
-                 
-                console.log('[UserFeature] GraphQL fallback features', {
-                  userId: data.userId,
-                  gqlFeatures,
-                  raw: res.currentUser?.features,
-                });
                 return {
                   userId: data.userId,
                   features: gqlFeatures,
                 };
-              } catch (e) {
-                 
-                console.error('[UserFeature] GraphQL fallback failed', e);
+              } catch {
                 return data;
               }
             });
           }),
           smartRetry(),
           tap(data => {
-             
-            console.log('[UserFeature] final features$', data?.features);
             if (data) {
               this.features$.next(data.features);
             } else {
