@@ -2,7 +2,7 @@ import type {
   CurrentUserProfileSnapshot,
   UserSettingsSnapshot,
 } from '@affine/realtime';
-import { Injectable, OnModuleInit, Optional } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { z } from 'zod';
 
 import { AuthenticationRequired, OnEvent, UserNotFound } from '../../base';
@@ -31,6 +31,8 @@ export class UserRealtimeProvider
   extends AvailableUserFeatureConfig
   implements OnModuleInit
 {
+  private readonly logger = new Logger(UserRealtimeProvider.name);
+
   constructor(
     private readonly models: Models,
     @Optional() private readonly registry?: RealtimeRegistry,
@@ -110,6 +112,14 @@ export class UserRealtimeProvider
       throw new UserNotFound();
     }
     const current = sessionUser(user);
+    const rawFeatures = await this.models.userFeature.list(userId);
+    const available = this.availableUserFeatures();
+    const serialized = rawFeatures
+      .filter(feature => available.has(feature))
+      .map(feature => this.serializeFeature(feature));
+    this.logger.log(
+      `[getProfile] userId=${userId} rawFeatures=${rawFeatures.join(',')} serialized=${serialized.join(',')}`
+    );
     return {
       id: current.id,
       name: current.name,
@@ -117,9 +127,7 @@ export class UserRealtimeProvider
       emailVerified: current.emailVerified,
       hasPassword: current.hasPassword,
       avatarUrl: current.avatarUrl ?? null,
-      features: (await this.models.userFeature.list(userId))
-        .filter(feature => this.availableUserFeatures().has(feature))
-        .map(feature => this.serializeFeature(feature)),
+      features: serialized,
     };
   }
 

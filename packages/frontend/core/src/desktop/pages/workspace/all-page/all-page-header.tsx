@@ -47,7 +47,10 @@ export const AllDocsHeader = ({
   const workbench = workbenchService.workbench;
   const userFeatureService = useService(UserFeatureService);
   const features = useLiveData(userFeatureService.userFeature.features$);
-  const isStudent = features?.some(f => f === FeatureType.GatewayStudent);
+  // Hide while features are still loading; only show the button for non-students
+  // once the feature list has resolved.
+  const isStudent =
+    features === null || features?.some(f => f === FeatureType.GatewayStudent);
   const { createEdgeless, createPage } = usePageHelper(
     workspaceService.workspace.docCollection
   );

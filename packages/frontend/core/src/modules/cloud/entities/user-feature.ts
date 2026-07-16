@@ -32,6 +32,9 @@ export class UserFeature extends Entity {
     private readonly gqlService: GraphQLService
   ) {
     super();
+    // Ensure features are loaded even if the AccountChanged event fired
+    // before this entity was created (lazy services / SSR).
+    this.revalidate();
   }
 
   revalidate = effect(
@@ -49,9 +52,15 @@ export class UserFeature extends Entity {
           const account = this.authService.session.account$.value;
           if (account?.id !== accountId) return;
 
+          const rawFeatures = account.info?.features ?? [];
+
+          console.log('[UserFeature] realtime features', {
+            userId: account.id,
+            rawFeatures,
+          });
           const features =
-            account.info?.features && account.info.features.length > 0
-              ? account.info.features.map(feature =>
+            rawFeatures.length > 0
+              ? rawFeatures.map(feature =>
                   mapRealtimeEnum(FeatureType, feature, 'user feature')
                 )
               : [];
@@ -73,17 +82,25 @@ export class UserFeature extends Entity {
                 const gqlFeatures = (res.currentUser?.features ?? []).map(
                   (f: string) => FeatureType[f as keyof typeof FeatureType] ?? f
                 );
+
+                console.log('[UserFeature] GraphQL fallback features', {
+                  userId: data.userId,
+                  gqlFeatures,
+                  raw: res.currentUser?.features,
+                });
                 return {
                   userId: data.userId,
                   features: gqlFeatures,
                 };
-              } catch {
+              } catch (e) {
+                console.error('[UserFeature] GraphQL fallback failed', e);
                 return data;
               }
             });
           }),
           smartRetry(),
           tap(data => {
+            console.log('[UserFeature] final features$', data?.features);
             if (data) {
               this.features$.next(data.features);
             } else {

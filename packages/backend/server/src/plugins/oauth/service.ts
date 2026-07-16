@@ -242,6 +242,7 @@ export class OAuthService {
   }
 
   private async syncGatewayRole(userId: string, role?: string) {
+    this.logger.log(`[syncGatewayRole] userId=${userId} role=${role}`);
     if (!role) return;
 
     if (role !== 'student' && role !== 'teacher') return;
@@ -254,6 +255,9 @@ export class OAuthService {
     const features = await this.models.userFeature.list(userId);
     const hasFeature = features.includes(featureName as any);
     const hasOther = features.includes(otherName as any);
+    this.logger.log(
+      `[syncGatewayRole] existing features=${features.join(',')} hasFeature=${hasFeature} hasOther=${hasOther}`
+    );
 
     if (hasFeature) return;
     if (hasOther) {
@@ -265,6 +269,7 @@ export class OAuthService {
       featureName as any,
       'Synced from gateway OIDC'
     );
+    this.logger.log(`[syncGatewayRole] added ${featureName} to user ${userId}`);
   }
 
   private async updateConnectedAccount(
