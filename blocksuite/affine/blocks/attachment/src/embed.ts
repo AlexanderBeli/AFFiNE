@@ -156,6 +156,33 @@ export class AttachmentEmbedService extends Extension {
   }
 }
 
+// Office formats convertible to PDF server-side (Gotenberg/LibreOffice).
+// Includes generic container mimes office files are often sniffed as.
+const OFFICE_MIMES = new Set([
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
+  'application/vnd.oasis.opendocument.presentation',
+  'application/vnd.oasis.opendocument.text',
+  'application/vnd.oasis.opendocument.spreadsheet',
+]);
+
+const OFFICE_EXT_RE = /\.(pptx?|docx?|xlsx?|od[pts])$/i;
+
+function isOfficeAttachment(model: AttachmentBlockModel) {
+  return (
+    OFFICE_MIMES.has(model.props.type) ||
+    // office files sniffed as zip/octet-stream: decide by extension
+    (['application/zip', 'application/octet-stream', ''].includes(
+      model.props.type
+    ) &&
+      OFFICE_EXT_RE.test(model.props.name))
+  );
+}
+
 const embedConfig: AttachmentEmbedConfig[] = [
   {
     name: 'image',
@@ -168,6 +195,43 @@ const embedConfig: AttachmentEmbedConfig[] = [
       if (!component) return;
 
       await turnIntoImageBlock(model);
+    },
+  },
+  {
+    // pptx/docx/xlsx…: converted to PDF on the server (Gotenberg), then
+    // shown with the native PDF embed. The conversion swaps the block's
+    // sourceId/type to the produced PDF blob.
+    name: 'office',
+    shouldShowStatus: true,
+    check: (model, maxFileSize) =>
+      isOfficeAttachment(model) && model.props.size <= maxFileSize,
+    action: async model => {
+      const sourceId = model.props.sourceId;
+      if (!sourceId) return;
+      const workspaceId = model.store.workspace.id;
+      const resp = await fetch(
+        `/api/workspaces/${workspaceId}/blobs/${encodeURIComponent(sourceId)}/convert-to-pdf`,
+        { method: 'POST', credentials: 'include' }
+      );
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        console.error('office → pdf conversion failed:', resp.status, text);
+        return;
+      }
+      const pdf = (await resp.json()) as { key: string; size: number };
+
+      const bound = Bound.deserialize(model.props.xywh);
+      bound.w = EMBED_CARD_WIDTH.pdf;
+      bound.h = EMBED_CARD_HEIGHT.pdf;
+      model.store.updateBlock(model, {
+        sourceId: pdf.key,
+        type: 'application/pdf',
+        size: pdf.size,
+        name: model.props.name.replace(/\.[^.]+$/, '') + '.pdf',
+        embed: true,
+        style: 'pdf',
+        xywh: bound.serialize(),
+      });
     },
   },
   {

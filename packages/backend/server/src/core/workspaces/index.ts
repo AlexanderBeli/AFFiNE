@@ -15,6 +15,7 @@ import {
 } from './abuse';
 import { WorkspacesController } from './controller';
 import { WorkspaceEvents } from './event';
+import { OfficeConvertController } from './office-convert';
 import { WorkspaceRealtimeModule } from './realtime.module';
 import {
   DocHistoryResolver,
@@ -41,7 +42,7 @@ import { WorkspaceStatsJob } from './stats.job';
     MailModule,
     WorkspaceRealtimeModule,
   ],
-  controllers: [WorkspacesController],
+  controllers: [WorkspacesController, OfficeConvertController],
   providers: [
     WorkspaceResolver,
     WorkspaceMemberResolver,
