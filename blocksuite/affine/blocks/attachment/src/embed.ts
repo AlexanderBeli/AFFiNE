@@ -218,11 +218,21 @@ const embedConfig: AttachmentEmbedConfig[] = [
         console.error('office → pdf conversion failed:', resp.status, text);
         return;
       }
-      const pdf = (await resp.json()) as { key: string; size: number };
+      const pdf = (await resp.json()) as {
+        key: string;
+        size: number;
+        pageWidth?: number | null;
+        pageHeight?: number | null;
+      };
 
       const bound = Bound.deserialize(model.props.xywh);
       bound.w = EMBED_CARD_WIDTH.pdf;
-      bound.h = EMBED_CARD_HEIGHT.pdf;
+      // keep the native slide/page aspect ratio (e.g. 16:9 presentations)
+      // instead of the default portrait card shape
+      bound.h =
+        pdf.pageWidth && pdf.pageHeight
+          ? bound.w * (pdf.pageHeight / pdf.pageWidth)
+          : EMBED_CARD_HEIGHT.pdf;
       model.store.updateBlock(model, {
         sourceId: pdf.key,
         type: 'application/pdf',

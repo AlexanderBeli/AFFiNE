@@ -147,6 +147,14 @@ export const styles = css`
     height: 100%;
   }
 
+  /* In edgeless the embed container is sized by the block bound (which can
+     follow the native page aspect of converted presentations) — the iframe
+     must fill it exactly instead of forcing the page-mode min-height. */
+  affine-edgeless-attachment .affine-attachment-embed-container iframe {
+    min-height: unset !important;
+    height: 100%;
+  }
+
   .affine-attachment-embed-status {
     position: absolute;
     left: 14px;

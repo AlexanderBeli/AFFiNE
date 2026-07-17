@@ -27,11 +27,17 @@ export class AttachmentEdgelessBlockComponent extends toGfxBlockComponent(
   }
 
   override renderGfxBlock() {
-    const { style$ } = this.model.props;
+    const { style$, embed$ } = this.model.props;
     const cardStyle = style$.value ?? AttachmentBlockStyles[1];
     const width = EMBED_CARD_WIDTH[cardStyle];
-    const height = EMBED_CARD_HEIGHT[cardStyle];
+    let height = EMBED_CARD_HEIGHT[cardStyle];
     const bound = this.model.elementBound;
+    if (cardStyle === 'pdf' && embed$.value) {
+      // Embedded PDFs (incl. converted presentations) may have any page
+      // aspect ratio — follow the block's bound so the scale stays uniform
+      // and the page is not distorted or letterboxed into a portrait card.
+      height = (width * bound.h) / bound.w;
+    }
     const scaleX = bound.w / width;
     const scaleY = bound.h / height;
 

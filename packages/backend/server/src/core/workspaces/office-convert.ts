@@ -108,11 +108,36 @@ export class OfficeConvertController {
       `converted blob ${key} (${record.mime}, ${record.size}b) -> ${pdfKey} (pdf, ${pdf.byteLength}b) in workspace ${workspaceId}`
     );
 
+    const pageSize = this.readFirstPageSize(pdf);
+
     return {
       key: pdfKey,
       size: pdf.byteLength,
       mime: 'application/pdf',
+      // slide/page dimensions in pt, so the client can keep the native
+      // aspect ratio of the presentation instead of the default card shape
+      pageWidth: pageSize?.width ?? null,
+      pageHeight: pageSize?.height ?? null,
     };
+  }
+
+  /**
+   * First-page MediaBox from the PDF header. LibreOffice writes MediaBox
+   * uncompressed, so a plain text scan over the head of the file works.
+   */
+  private readFirstPageSize(
+    pdf: Buffer
+  ): { width: number; height: number } | null {
+    const head = pdf.subarray(0, 256 * 1024).toString('latin1');
+    const match = head.match(
+      /\/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s*\]/
+    );
+    if (!match) return null;
+    const [x1, y1, x2, y2] = match.slice(1).map(Number);
+    const width = Math.abs(x2 - x1);
+    const height = Math.abs(y2 - y1);
+    if (!width || !height) return null;
+    return { width, height };
   }
 
   private async convertViaGotenberg(
