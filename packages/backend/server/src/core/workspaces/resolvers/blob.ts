@@ -216,7 +216,19 @@ export class WorkspaceBlobResolver {
         throw new BlobInvalid('Blob size mismatch');
       }
       if (record.mime !== mime) {
-        throw new BlobInvalid('Blob mime mismatch');
+        // The key is a content hash: same key + same size means identical
+        // bytes, while mime is client-declared metadata that can legally
+        // differ between attempts (e.g. a .pptx sniffed as application/zip
+        // by another upload path). Prefer the newly declared mime instead
+        // of rejecting the upload.
+        record = await this.models.blob.upsert({
+          workspaceId,
+          key,
+          size: record.size,
+          mime,
+          status: record.status,
+          uploadId: record.uploadId,
+        });
       }
 
       if (record.status === 'completed') {
@@ -226,9 +238,9 @@ export class WorkspaceBlobResolver {
           record = null;
         } else if (existingMetadata.contentLength !== size) {
           throw new BlobInvalid('Blob size mismatch');
-        } else if (existingMetadata.contentType !== mime) {
-          throw new BlobInvalid('Blob mime mismatch');
         } else {
+          // content matches; ignore contentType drift in storage metadata —
+          // the DB record above is the source of truth for serving
           return {
             method: BlobUploadMethod.GRAPHQL,
             blobKey: key,
