@@ -142,6 +142,20 @@ const TeamFeature = {
   },
 } as const;
 
+// Personal self-host fork: generous limits instead of the stock
+// selfhosted defaults (ProFeature: 100 MB blob / 100 GB storage).
+const SelfhostFeature = {
+  type: FeatureType.Quota,
+  configs: {
+    name: 'Self-Host',
+    blobLimit: 1024 * OneMB,
+    storageQuota: 10240 * OneGB,
+    historyPeriod: 365 * OneDay,
+    memberLimit: 50,
+    copilotActionLimit: 10,
+  },
+} as const;
+
 const EmptyFeature = {
   type: FeatureType.Feature,
   configs: {},
@@ -154,7 +168,7 @@ export const FeatureConfigs: {
   };
 } = {
   get free_plan_v1() {
-    return env.selfhosted ? ProFeature : FreeFeature;
+    return env.selfhosted ? SelfhostFeature : FreeFeature;
   },
   pro_plan_v1: ProFeature,
   lifetime_pro_plan_v1: LifetimeProFeature,
