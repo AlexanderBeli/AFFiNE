@@ -442,12 +442,13 @@ fn plan_catalog(plan: &str, quantity: Option<i32>) -> PlanQuota {
         unlimited_copilot: false,
       }
     }
+    // Personal fork: generous self-host limits (stock: 100MB/100GB/10 seats)
     "selfhost_free" => PlanQuota {
       name: "selfhost_free",
-      blob_limit: 100 * ONE_MB,
-      storage_quota: 100 * ONE_GB,
-      history_period: 30 * ONE_DAY_SECONDS,
-      member_limit: Some(10),
+      blob_limit: 1024 * ONE_MB,
+      storage_quota: 10240 * ONE_GB,
+      history_period: 365 * ONE_DAY_SECONDS,
+      member_limit: Some(50),
       seat_quota: None,
       copilot_action_limit: Some(10),
       unlimited_copilot: false,
