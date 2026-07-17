@@ -23,8 +23,9 @@ WORKDIR /app
 
 COPY --from=assets /app /app
 
+# poppler-utils: pdftoppm for the "split into pages" office/pdf feature
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends openssl libjemalloc2 && \
+  apt-get install -y --no-install-recommends openssl libjemalloc2 poppler-utils && \
   rm -rf /var/lib/apt/lists/*
 
 # Enable jemalloc by preloading the library

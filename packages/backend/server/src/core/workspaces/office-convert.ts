@@ -1,4 +1,9 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { Controller, Logger, Param, Post } from '@nestjs/common';
 
@@ -8,6 +13,8 @@ import { CurrentUser } from '../auth';
 import { PermissionAccess } from '../permission';
 import { QuotaService } from '../quota';
 import { WorkspaceBlobStorage } from '../storage';
+
+const execFileAsync = promisify(execFile);
 
 // Office formats Gotenberg (LibreOffice) can convert to PDF.
 // Extension matters: Gotenberg picks the converter by file extension.
@@ -30,6 +37,17 @@ const OFFICE_MIME_EXT: Record<string, string> = {
 
 const GOTENBERG_TIMEOUT_MS = 120_000;
 const MAX_SOURCE_SIZE = 512 * 1024 * 1024;
+const PAGE_RENDER_DPI = 144;
+const MAX_PAGES = 200;
+
+/** PNG dimensions from the IHDR chunk (bytes 16..24). */
+function readPngSize(png: Buffer): { width: number; height: number } {
+  if (png.length < 24) return { width: 0, height: 0 };
+  return {
+    width: png.readUInt32BE(16),
+    height: png.readUInt32BE(20),
+  };
+}
 
 /**
  * Converts an office attachment blob (pptx/docx/xlsx…) to PDF via
@@ -138,6 +156,136 @@ export class OfficeConvertController {
     const height = Math.abs(y2 - y1);
     if (!width || !height) return null;
     return { width, height };
+  }
+
+  /**
+   * Splits an office/PDF blob into per-page PNG images (pdftoppm) and
+   * stores each page as a new blob, so the client can lay the pages out
+   * as independent, movable image blocks on the board.
+   */
+  @Post('/:id/blobs/:key/convert-to-images')
+  @CallMetric('controllers', 'office_convert_to_images')
+  async convertToImages(
+    @CurrentUser() user: CurrentUser,
+    @Param('id') workspaceId: string,
+    @Param('key') key: string
+  ) {
+    await this.ac
+      .user(user.id)
+      .workspace(workspaceId)
+      .assert('Workspace.Blobs.Write');
+
+    const record = await this.models.blob.get(workspaceId, key);
+    if (!record) {
+      throw new BlobNotFound({ spaceId: workspaceId, blobId: key });
+    }
+
+    const { body } = await this.storage.get(workspaceId, key);
+    if (!body) {
+      throw new BlobNotFound({ spaceId: workspaceId, blobId: key });
+    }
+    const source = await readBufferWithLimit(body, MAX_SOURCE_SIZE);
+
+    // office documents go through Gotenberg first; PDFs are used as-is
+    let pdf: Buffer;
+    if (record.mime === 'application/pdf') {
+      pdf = source;
+    } else {
+      const ext = OFFICE_MIME_EXT[record.mime];
+      if (!ext) {
+        throw new Error(
+          `Unsupported source mime for conversion: ${record.mime}`
+        );
+      }
+      pdf = await this.convertViaGotenberg(source, `document.${ext}`);
+    }
+
+    const pages = await this.renderPdfPages(pdf);
+
+    const totalSize = pages.reduce((sum, p) => sum + p.data.byteLength, 0);
+    const checkExceeded =
+      await this.quota.getWorkspaceQuotaCalculator(workspaceId);
+    const result = checkExceeded(totalSize);
+    if (result?.blobQuotaExceeded || result?.storageQuotaExceeded) {
+      throw new Error('Workspace storage quota exceeded');
+    }
+
+    const stored: {
+      key: string;
+      size: number;
+      width: number;
+      height: number;
+      page: number;
+    }[] = [];
+    for (const [index, page] of pages.entries()) {
+      const pageKey = createHash('sha256')
+        .update(page.data)
+        .digest('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+      await this.storage.put(workspaceId, pageKey, page.data);
+      await this.models.blob.upsert({
+        workspaceId,
+        key: pageKey,
+        mime: 'image/png',
+        size: page.data.byteLength,
+        status: 'completed',
+        uploadId: null,
+      });
+      stored.push({
+        key: pageKey,
+        size: page.data.byteLength,
+        width: page.width,
+        height: page.height,
+        page: index + 1,
+      });
+    }
+
+    this.logger.log(
+      `split blob ${key} (${record.mime}) into ${stored.length} page images in workspace ${workspaceId}`
+    );
+
+    return { pages: stored };
+  }
+
+  private async renderPdfPages(
+    pdf: Buffer
+  ): Promise<{ data: Buffer; width: number; height: number }[]> {
+    const dir = await mkdtemp(join(tmpdir(), 'pdf-pages-'));
+    try {
+      const pdfPath = join(dir, 'source.pdf');
+      await writeFile(pdfPath, pdf);
+
+      await execFileAsync(
+        'pdftoppm',
+        [
+          '-png',
+          '-r',
+          String(PAGE_RENDER_DPI),
+          '-l',
+          String(MAX_PAGES),
+          pdfPath,
+          join(dir, 'page'),
+        ],
+        { timeout: GOTENBERG_TIMEOUT_MS }
+      );
+
+      const files = (await readdir(dir))
+        .filter(f => f.startsWith('page') && f.endsWith('.png'))
+        .sort();
+      if (!files.length) {
+        throw new Error('pdftoppm produced no pages');
+      }
+
+      const pages = [];
+      for (const file of files) {
+        const data = await readFile(join(dir, file));
+        pages.push({ data, ...readPngSize(data) });
+      }
+      return pages;
+    } finally {
+      await rm(dir, { recursive: true, force: true }).catch(() => {});
+    }
   }
 
   private async convertViaGotenberg(

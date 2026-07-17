@@ -24,6 +24,7 @@ import {
   DownloadIcon,
   DuplicateIcon,
   EditIcon,
+  ImageIcon,
   ReplaceIcon,
   ResetIcon,
 } from '@blocksuite/icons/lit';
@@ -36,7 +37,7 @@ import { keyed } from 'lit/directives/keyed.js';
 
 import { AttachmentBlockComponent } from '../attachment-block';
 import { RenameModal } from '../components/rename-model';
-import { AttachmentEmbedProvider } from '../embed';
+import { AttachmentEmbedProvider, isOfficeAttachment } from '../embed';
 
 const trackBaseProps = {
   category: 'attachment',
@@ -378,6 +379,90 @@ const builtinSurfaceToolbarConfig = {
     {
       ...downloadAction,
       id: 'e.download',
+    },
+    {
+      // Presentations/PDFs: render every page server-side and insert them
+      // as independent, movable image blocks laid out next to the source.
+      id: 'e.split-pages',
+      tooltip: 'Split into page images',
+      icon: ImageIcon(),
+      when(ctx) {
+        const model = ctx.getCurrentModelByType(AttachmentBlockModel);
+        if (!model) return false;
+        return (
+          model.props.type === 'application/pdf' || isOfficeAttachment(model)
+        );
+      },
+      run(ctx) {
+        const model = ctx.getCurrentModelByType(AttachmentBlockModel);
+        if (!model) return;
+        const sourceId = model.props.sourceId;
+        if (!sourceId) return;
+
+        const workspaceId = model.store.workspace.id;
+        const bound = Bound.deserialize(model.props.xywh);
+
+        fetch(
+          `/api/workspaces/${workspaceId}/blobs/${encodeURIComponent(sourceId)}/convert-to-images`,
+          { method: 'POST', credentials: 'include' }
+        )
+          .then(async resp => {
+            if (!resp.ok) {
+              throw new Error(
+                `split into pages failed: ${resp.status} ${await resp
+                  .text()
+                  .catch(() => '')}`
+              );
+            }
+            const { pages } = (await resp.json()) as {
+              pages: {
+                key: string;
+                size: number;
+                width: number;
+                height: number;
+                page: number;
+              }[];
+            };
+            if (!pages.length) return;
+
+            const surface =
+              ctx.store.getBlocksByFlavour('affine:surface')[0];
+            if (!surface) return;
+
+            const cellW = 480;
+            const gap = 32;
+            const columns = Math.min(
+              Math.max(Math.ceil(Math.sqrt(pages.length)), 1),
+              5
+            );
+            const startX = bound.x + bound.w + 64;
+            const startY = bound.y;
+
+            let rowY = startY;
+            let rowMaxH = 0;
+            pages.forEach((page, i) => {
+              const col = i % columns;
+              if (col === 0 && i > 0) {
+                rowY += rowMaxH + gap;
+                rowMaxH = 0;
+              }
+              const h =
+                page.width > 0 ? (cellW * page.height) / page.width : cellW;
+              rowMaxH = Math.max(rowMaxH, h);
+              const x = startX + col * (cellW + gap);
+              ctx.store.addBlock(
+                'affine:image',
+                {
+                  sourceId: page.key,
+                  size: page.size,
+                  xywh: new Bound(x, rowY, cellW, h).serialize(),
+                },
+                surface.id
+              );
+            });
+          })
+          .catch(console.error);
+      },
     },
     {
       ...captionAction,

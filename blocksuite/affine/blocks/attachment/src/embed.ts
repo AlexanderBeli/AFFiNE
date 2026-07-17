@@ -172,7 +172,7 @@ const OFFICE_MIMES = new Set([
 
 const OFFICE_EXT_RE = /\.(pptx?|docx?|xlsx?|od[pts])$/i;
 
-function isOfficeAttachment(model: AttachmentBlockModel) {
+export function isOfficeAttachment(model: AttachmentBlockModel) {
   return (
     OFFICE_MIMES.has(model.props.type) ||
     // office files sniffed as zip/octet-stream: decide by extension
