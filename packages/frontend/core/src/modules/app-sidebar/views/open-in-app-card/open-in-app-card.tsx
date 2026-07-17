@@ -12,6 +12,13 @@ import { useCallback, useState } from 'react';
 import * as styles from './open-in-app-card.css';
 
 export const OpenInAppCard = () => {
+  // Fork: the self-hosted platform is web-only for teachers/students —
+  // the "Open this doc in AFFiNE app" banner is noise, never show it.
+  return null;
+};
+
+// kept for reference / easy re-enable
+export const OpenInAppCardOriginal = () => {
   const openInAppService = useService(OpenInAppService);
   const show = useLiveData(openInAppService.showOpenInAppBanner$);
   const t = useI18n();
