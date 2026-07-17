@@ -45,12 +45,104 @@ import {
   useService,
   useServiceOptional,
 } from '@toeverything/infra';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { useAsyncCallback } from '../../../components/hooks/affine-async-hooks';
 import { HeaderDropDownButton } from '../../../components/pure/header-drop-down-button';
+import type { WorkspaceMetadata } from '../../../modules/workspace';
+import { WorkspacesService } from '../../../modules/workspace';
+import { copyDocToWorkspace } from '../../utils/copy-doc-to-workspace';
 import { useFavorite } from '../favorite';
 import { HistoryTipsModal } from './history-tips-modal';
 import { shareMenu } from './style.css';
+
+/**
+ * Template workflow: copy the current doc (with blobs) into another
+ * workspace the user is a member of — e.g. from the shared read-only
+ * "Templates" workspace into a teacher's own workspace, or a teacher's
+ * board into the shared "Suggested templates" workspace.
+ */
+const CopyToWorkspaceItem = ({
+  meta,
+  page,
+}: {
+  meta: WorkspaceMetadata;
+  page: Store;
+}) => {
+  const workspacesService = useService(WorkspacesService);
+  const profile = workspacesService.getProfile(meta);
+  useEffect(() => {
+    profile.revalidate();
+  }, [profile]);
+  const name = useLiveData(profile.profile$)?.name ?? '…';
+
+  const onSelect = useAsyncCallback(async () => {
+    try {
+      const { workspace, dispose } = workspacesService.open({
+        metadata: meta,
+      });
+      try {
+        await workspace.engine.doc.waitForDocReady(workspace.id);
+        const docId = await copyDocToWorkspace(page, workspace.docCollection);
+        workspace.engine.doc.addPriority(workspace.id, 100);
+        workspace.engine.doc.addPriority(docId, 100);
+        await workspace.engine.doc.waitForSynced(workspace.id);
+        await workspace.engine.doc.waitForSynced(docId);
+        notify.success({
+          title: 'Copied',
+          message: `The doc has been copied to "${name}".`,
+        });
+      } finally {
+        dispose();
+      }
+    } catch (e) {
+      console.error(e);
+      notify.error({
+        title: 'Copy failed',
+        message: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }, [meta, name, page, workspacesService]);
+
+  return (
+    <MenuItem
+      data-testid={`copy-to-workspace-${meta.id}`}
+      onSelect={onSelect}
+    >
+      {name}
+    </MenuItem>
+  );
+};
+
+const CopyToWorkspaceMenu = ({
+  page,
+  currentWorkspaceId,
+}: {
+  page: Store;
+  currentWorkspaceId: string;
+}) => {
+  const workspacesService = useService(WorkspacesService);
+  const metas = useLiveData(workspacesService.list.workspaces$);
+  const targets = metas.filter(
+    meta => meta.id !== currentWorkspaceId && meta.flavour !== 'local'
+  );
+
+  if (!targets.length) return null;
+
+  return (
+    <MenuSub
+      items={targets.map(meta => (
+        <CopyToWorkspaceItem key={meta.id} meta={meta} page={page} />
+      ))}
+      triggerOptions={{
+        prefixIcon: <DuplicateIcon />,
+        'data-testid': 'editor-option-menu-copy-to-workspace',
+      }}
+    >
+      Copy to workspace
+    </MenuSub>
+  );
+};
 
 type PageMenuProps = {
   rename?: () => void;
@@ -435,6 +527,12 @@ const PageHeaderMenuItem = ({
           {t['com.affine.header.option.duplicate']()}
         </MenuItem>
       )}
+      {!isJournal && !isGatewayStudent && (
+        <CopyToWorkspaceMenu
+          page={editorService.editor.doc.blockSuiteDoc}
+          currentWorkspaceId={workspace.id}
+        />
+      )}
       {!isGatewayStudent && (
         <MenuItem
           prefixIcon={<ImportIcon />}
@@ -451,7 +549,8 @@ const PageHeaderMenuItem = ({
         onSelect={handleOpenTrashModal}
         disabled={!canMoveToTrash}
       />
-      {BUILD_CONFIG.isWeb && workspace.flavour !== 'local' ? (
+      {/* Fork: web-only platform — "Open in desktop app" removed */}
+      {false && BUILD_CONFIG.isWeb && workspace.flavour !== 'local' ? (
         <MenuItem
           prefixIcon={<LocalWorkspaceIcon />}
           data-testid="editor-option-menu-link"
