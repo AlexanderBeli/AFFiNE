@@ -1,3 +1,4 @@
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { UserFeatureService } from '@affine/core/modules/cloud/services/user-feature';
 import type { SettingTab } from '@affine/core/modules/dialogs/constant';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
@@ -34,6 +35,7 @@ export type GeneralSettingList = SettingSidebarItem[];
 
 export const useGeneralSettingList = (): GeneralSettingList => {
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
   const {
     authService,
     serverService,
@@ -134,20 +136,23 @@ export const useGeneralSettingList = (): GeneralSettingList => {
       });
     }
 
-    settings.push(
-      {
-        key: 'experimental-features',
-        title: t['com.affine.settings.workspace.experimental-features'](),
-        icon: <ExperimentIcon />,
-        testId: 'experimental-features-trigger',
-      },
-      {
-        key: 'about',
-        title: t['com.affine.aboutAFFiNE.title'](),
-        icon: <InformationIcon />,
-        testId: 'about-panel-trigger',
-      }
-    );
+    // Fork: студентам не показываем экспериментальные фичи и About AFFiNE
+    if (!isGatewayStudent) {
+      settings.push(
+        {
+          key: 'experimental-features',
+          title: t['com.affine.settings.workspace.experimental-features'](),
+          icon: <ExperimentIcon />,
+          testId: 'experimental-features-trigger',
+        },
+        {
+          key: 'about',
+          title: t['com.affine.aboutAFFiNE.title'](),
+          icon: <InformationIcon />,
+          testId: 'about-panel-trigger',
+        }
+      );
+    }
     return settings;
   }, [
     t,
@@ -155,6 +160,7 @@ export const useGeneralSettingList = (): GeneralSettingList => {
     enableEditorSettings,
     meetingSettings?.enabled,
     hasPaymentFeature,
+    isGatewayStudent,
   ]);
 };
 

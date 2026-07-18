@@ -1,3 +1,4 @@
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
 import { ServerService } from '@affine/core/modules/cloud';
 import type { SettingTab } from '@affine/core/modules/dialogs/constant';
@@ -76,6 +77,7 @@ export const useWorkspaceSettingList = (): SettingSidebarItem[] => {
   );
 
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
 
   const showBilling =
     !isSelfhosted && information?.isTeam && information?.isOwner;
@@ -88,32 +90,33 @@ export const useWorkspaceSettingList = (): SettingSidebarItem[] => {
         icon: <SettingsIcon />,
         testId: 'workspace-setting:preference',
       },
-      {
-        key: 'workspace:properties',
+      // Fork: студентам оставляем только Preferences
+      !isGatewayStudent && {
+        key: 'workspace:properties' as SettingTab,
         title: t['com.affine.settings.workspace.properties'](),
         icon: <PropertyIcon />,
         testId: 'workspace-setting:properties',
       },
-      {
-        key: 'workspace:members',
+      !isGatewayStudent && {
+        key: 'workspace:members' as SettingTab,
         title: t['Members'](),
         icon: <CollaborationIcon />,
         testId: 'workspace-setting:members',
       },
-      {
-        key: 'workspace:integrations',
+      !isGatewayStudent && {
+        key: 'workspace:integrations' as SettingTab,
         title: t['com.affine.integration.integrations'](),
         icon: <IntegrationsIcon />,
         testId: 'workspace-setting:integrations',
       },
-      {
-        key: 'workspace:storage',
+      !isGatewayStudent && {
+        key: 'workspace:storage' as SettingTab,
         title: t['Storage'](),
         icon: <SaveIcon />,
         testId: 'workspace-setting:storage',
       },
-      {
-        key: 'workspace:embedding',
+      !isGatewayStudent && {
+        key: 'workspace:embedding' as SettingTab,
         title:
           t[
             'com.affine.settings.workspace.indexer-embedding.embedding.title'
@@ -134,7 +137,7 @@ export const useWorkspaceSettingList = (): SettingSidebarItem[] => {
         testId: 'workspace-setting:license',
       },
     ].filter((item): item is SettingSidebarItem => !!item);
-  }, [showBilling, showLicense, t]);
+  }, [showBilling, showLicense, t, isGatewayStudent]);
 
   return items;
 };

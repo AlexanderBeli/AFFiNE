@@ -34,7 +34,8 @@ const appSettingBaseAtom = atomWithStorage<AppSetting>(
     enableNoisyBackground: true,
     autoCheckUpdate: true,
     autoDownloadUpdate: true,
-    enableTelemetry: true,
+    // Fork: telemetry disabled by default (toggle hidden in About settings)
+    enableTelemetry: false,
     showLinkedDocInSidebar: true,
     disableImageAntialiasing: false,
   },

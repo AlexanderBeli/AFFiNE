@@ -39,6 +39,7 @@ import type { MouseEvent } from 'react';
 import { useCallback, useState } from 'react';
 
 import { usePageHelper } from '../../blocksuite/block-suite-page-list/utils';
+import { CopyToWorkspaceMenu } from '../copy-to-workspace-menu';
 import {
   type CollectionMeta,
   CollectionService,
@@ -79,6 +80,7 @@ const PageOperationCellMenuItem = ({
 
   const canMoveToTrash = useGuard('Doc_Trash', page.id);
   const currentWorkspace = workspaceService.workspace;
+  const isGatewayStudent = useIsGatewayStudent();
   const favourite = useLiveData(favAdapter.isFavorite$(page.id, 'doc'));
   const workbench = workbenchService.workbench;
   const { duplicate } = useBlockSuiteMetaHelper();
@@ -203,6 +205,14 @@ const PageOperationCellMenuItem = ({
       <MenuItem prefixIcon={<DuplicateIcon />} onSelect={onDuplicate}>
         {t['com.affine.header.option.duplicate']()}
       </MenuItem>
+
+      {/* Fork: template workflow — copy the doc into another workspace */}
+      {!isGatewayStudent && (
+        <CopyToWorkspaceMenu
+          docId={page.id}
+          currentWorkspaceId={currentWorkspace.id}
+        />
+      )}
 
       <MoveToTrash
         data-testid="move-to-trash"
