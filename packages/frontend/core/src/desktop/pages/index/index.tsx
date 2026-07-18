@@ -74,8 +74,8 @@ export const Component = ({
   const createCloudWorkspace = useCallback(() => {
     if (createOnceRef.current) return;
     createOnceRef.current = true;
-    // TODO: support selfhosted
-    buildShowcaseWorkspace(workspacesService, 'affine-cloud', 'AFFiNE Cloud')
+    // selfhost web: default server id is also 'affine-cloud' (baseUrl = origin)
+    buildShowcaseWorkspace(workspacesService, 'affine-cloud', 'My Workspace')
       .then(({ meta, defaultDocId }) => {
         if (defaultDocId) {
           jumpToPage(meta.id, defaultDocId);
@@ -117,14 +117,25 @@ export const Component = ({
         return;
       }
     } else {
-      if (list.length === 0) {
+      // Fork: local workspaces disabled server-side — never auto-open them
+      const openableList = enableLocalWorkspace
+        ? list
+        : list.filter(w => w.flavour !== 'local');
+      if (openableList.length === 0) {
+        // Fork: first sign-in on the platform — create the cloud workspace
+        // automatically instead of showing the empty workspace navigator
+        if (!enableLocalWorkspace && loggedIn) {
+          createCloudWorkspace();
+          return;
+        }
         setNavigating(false);
         return;
       }
       // open last workspace
       const lastId = localStorage.getItem('last_workspace_id');
 
-      const openWorkspace = list.find(w => w.id === lastId) ?? list[0];
+      const openWorkspace =
+        openableList.find(w => w.id === lastId) ?? openableList[0];
       openPage(openWorkspace.id, defaultIndexRoute, RouteLogic.REPLACE);
     }
   }, [

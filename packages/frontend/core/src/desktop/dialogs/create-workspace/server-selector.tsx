@@ -1,5 +1,10 @@
 import { Menu, MenuItem } from '@affine/component';
-import { type Server, ServersService } from '@affine/core/modules/cloud';
+import {
+  DefaultServerService,
+  type Server,
+  ServersService,
+} from '@affine/core/modules/cloud';
+import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
   ArrowDownSmallIcon,
@@ -41,6 +46,17 @@ export const ServerSelector = ({
   const serversService = useService(ServersService);
   const servers = useLiveData(serversService.servers$);
 
+  // Fork: сервер выключил локальные воркспейсы — прячем пункт Local
+  const defaultServerService = useService(DefaultServerService);
+  const enableLocalWorkspace =
+    useLiveData(
+      defaultServerService.server.config$.selector(
+        c =>
+          c.features.includes(ServerFeature.LocalWorkspace) ||
+          BUILD_CONFIG.isNative
+      )
+    ) ?? true;
+
   const selectedServer = useMemo(() => {
     return servers.find(s => s.id === selectedId);
   }, [selectedId, servers]);
@@ -67,10 +83,12 @@ export const ServerSelector = ({
       }}
       items={
         <ul className={styles.list} data-testid="server-selector-list">
-          <LocalSelectorItem
-            onSelect={onChange}
-            active={selectedId === 'local'}
-          />
+          {enableLocalWorkspace && (
+            <LocalSelectorItem
+              onSelect={onChange}
+              active={selectedId === 'local'}
+            />
+          )}
           {servers.map(server => (
             <ServerSelectorItem
               key={server.id}

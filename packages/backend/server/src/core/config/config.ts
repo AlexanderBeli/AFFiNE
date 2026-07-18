@@ -79,6 +79,8 @@ Default to be \`[server.protocol]://[server.host][:server.port]\` if not specifi
 defineModuleConfig('flags', {
   allowGuestDemoWorkspace: {
     desc: 'Whether allow guest users to create demo workspaces.',
-    default: true,
+    // Fork: web-only platform behind OIDC gateway — local/demo workspaces
+    // confuse students, all data must live on the server
+    default: false,
   },
 });

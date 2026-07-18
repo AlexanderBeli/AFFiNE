@@ -5,7 +5,11 @@ import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
 import type { AuthAccountInfo, Server } from '@affine/core/modules/cloud';
-import { AuthService, ServersService } from '@affine/core/modules/cloud';
+import {
+  AuthService,
+  DefaultServerService,
+  ServersService,
+} from '@affine/core/modules/cloud';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { GlobalContextService } from '@affine/core/modules/global-context';
 import {
@@ -13,6 +17,7 @@ import {
   WorkspaceService,
   WorkspacesService,
 } from '@affine/core/modules/workspace';
+import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
   AccountIcon,
@@ -239,6 +244,18 @@ export const AFFiNEWorkspaceList = ({
 
   const confirmEnableCloud = useEnableCloud();
 
+  // Fork: сервер выключил локальные воркспейсы — прячем секцию Local storage
+  // и кнопки Enable Cloud, чтобы не путать учеников
+  const defaultServerService = useService(DefaultServerService);
+  const enableLocalWorkspace =
+    useLiveData(
+      defaultServerService.server.config$.selector(
+        c =>
+          c.features.includes(ServerFeature.LocalWorkspace) ||
+          BUILD_CONFIG.isNative
+      )
+    ) ?? true;
+
   const serversService = useService(ServersService);
   const servers = useLiveData(serversService.servers$);
   const affineCloudServer = useMemo(
@@ -301,18 +318,21 @@ export const AFFiNEWorkspaceList = ({
           onClickWorkspace={handleClickWorkspace}
         />
       </FrameworkScope>
-      {(localWorkspaces.length > 0 || selfhostServers.length > 0) && (
-        <Divider size="thinner" className={styles.serverDivider} />
-      )}
+      {enableLocalWorkspace &&
+        (localWorkspaces.length > 0 || selfhostServers.length > 0) && (
+          <Divider size="thinner" className={styles.serverDivider} />
+        )}
 
-      {/* 2. local */}
-      <LocalWorkspaces
-        workspaces={localWorkspaces}
-        onClickWorkspace={handleClickWorkspace}
-        onClickEnableCloud={
-          showEnableCloudButton ? onClickEnableCloud : undefined
-        }
-      />
+      {/* 2. local (hidden when the server disables local workspaces) */}
+      {enableLocalWorkspace && (
+        <LocalWorkspaces
+          workspaces={localWorkspaces}
+          onClickWorkspace={handleClickWorkspace}
+          onClickEnableCloud={
+            showEnableCloudButton ? onClickEnableCloud : undefined
+          }
+        />
+      )}
       {selfhostServers.length > 0 && (
         <Divider size="thinner" className={styles.serverDivider} />
       )}
