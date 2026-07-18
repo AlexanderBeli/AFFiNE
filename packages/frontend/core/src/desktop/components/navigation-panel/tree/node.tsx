@@ -14,6 +14,7 @@ import {
   useDropTarget,
 } from '@affine/component';
 import { Guard } from '@affine/core/components/guard';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { AppSidebarService } from '@affine/core/modules/app-sidebar';
 import { ExplorerIconService } from '@affine/core/modules/explorer-icon/services/explorer-icon';
 import type { ExplorerType } from '@affine/core/modules/explorer-icon/store/explorer-icon';
@@ -205,6 +206,7 @@ export const NavigationPanelTreeNode = ({
 }: WebNavigationPanelTreeNodeProps) => {
   const explorerIconService = useService(ExplorerIconService);
   const t = useI18n();
+  const isGatewayStudent = useIsGatewayStudent();
   const cid = useId();
   const context = useContext(NavigationPanelTreeContext);
   const level = context?.level ?? 0;
@@ -468,32 +470,35 @@ export const NavigationPanelTreeNode = ({
       <div className={styles.itemMain}>
         <div className={styles.itemContent}>{rawName}</div>
         {postfix}
-        <div
-          className={styles.postfix}
-          onClick={e => {
-            // prevent jump to page
-            e.preventDefault();
-          }}
-        >
-          {inlineOperations.map(({ view, index }) => (
-            <Fragment key={index}>{view}</Fragment>
-          ))}
-          {menuOperations.length > 0 && (
-            <Menu
-              items={menuOperations.map(({ view, index }) => (
-                <Fragment key={index}>{view}</Fragment>
-              ))}
-            >
-              <IconButton
-                size="16"
-                data-testid="navigation-panel-tree-node-operation-button"
-                style={{ marginLeft: 4 }}
+        {/* Fork: студентам не показываем операции управления узлами */}
+        {!isGatewayStudent && (
+          <div
+            className={styles.postfix}
+            onClick={e => {
+              // prevent jump to page
+              e.preventDefault();
+            }}
+          >
+            {inlineOperations.map(({ view, index }) => (
+              <Fragment key={index}>{view}</Fragment>
+            ))}
+            {menuOperations.length > 0 && (
+              <Menu
+                items={menuOperations.map(({ view, index }) => (
+                  <Fragment key={index}>{view}</Fragment>
+                ))}
               >
-                <MoreHorizontalIcon />
-              </IconButton>
-            </Menu>
-          )}
-        </div>
+                <IconButton
+                  size="16"
+                  data-testid="navigation-panel-tree-node-operation-button"
+                  style={{ marginLeft: 4 }}
+                >
+                  <MoreHorizontalIcon />
+                </IconButton>
+              </Menu>
+            )}
+          </div>
+        )}
       </div>
 
       {renameable && renaming && (

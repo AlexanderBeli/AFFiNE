@@ -15,7 +15,12 @@ export const RootEmpty = ({
       icon={ViewLayersIcon}
       message={t['com.affine.collections.empty.message']()}
       messageTestId="slider-bar-collection-empty-message"
-      actionText={t['com.affine.collections.empty.new-collection-button']()}
+      // кнопка создания — только когда передан обработчик (скрыта у студентов)
+      actionText={
+        onClickCreate
+          ? t['com.affine.collections.empty.new-collection-button']()
+          : undefined
+      }
       onActionClick={onClickCreate}
     />
   );

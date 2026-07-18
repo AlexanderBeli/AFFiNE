@@ -12,6 +12,7 @@ import { JournalTodayButton } from '@affine/core/blocksuite/block-suite-header/j
 import { PageHeaderMenuButton } from '@affine/core/blocksuite/block-suite-header/menu';
 import { DetailPageHeaderPresentButton } from '@affine/core/blocksuite/block-suite-header/present/detail-header-present-button';
 import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-header/title';
+import { useIsGatewayStudent } from '@affine/core/components/hooks/use-is-gateway-student';
 import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
 import { useRegisterCopyLinkCommands } from '@affine/core/components/hooks/affine/use-register-copy-link-commands';
 import { HeaderDivider } from '@affine/core/components/pure/header';
@@ -95,6 +96,7 @@ export function JournalPageHeader({ page, workspace }: PageHeaderProps) {
 
   const { hideShare, hideToday } =
     useDetailPageHeaderResponsive(containerWidth);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const docDisplayMetaService = useService(DocDisplayMetaService);
   const title = useLiveData(docDisplayMetaService.title$(page.id));
@@ -110,12 +112,15 @@ export function JournalPageHeader({ page, workspace }: PageHeaderProps) {
       <TemplateMark className={styles.journalTemplateMark} />
       {hideToday ? null : <JournalTodayButton />}
       <HeaderDivider />
-      <PageHeaderMenuButton
-        isJournal
-        page={page}
-        containerWidth={containerWidth}
-      />
-      {page && !hideShare ? (
+      {/* Fork: студентам не показываем меню управления и Share */}
+      {!isGatewayStudent && (
+        <PageHeaderMenuButton
+          isJournal
+          page={page}
+          containerWidth={containerWidth}
+        />
+      )}
+      {page && !hideShare && !isGatewayStudent ? (
         <SharePageButton workspace={workspace} page={page} />
       ) : null}
     </Header>
@@ -137,6 +142,7 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
 
   const { hideCollect, hideShare, hidePresent, showDivider } =
     useDetailPageHeaderResponsive(containerWidth);
+  const isGatewayStudent = useIsGatewayStudent();
 
   const onRename = useCallback(() => {
     setTimeout(
@@ -165,18 +171,21 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
             <InfoButton docId={page.id} />
           </>
         )}
-        <PageHeaderMenuButton
-          rename={onRename}
-          page={page}
-          containerWidth={containerWidth}
-        />
+        {/* Fork: студентам не показываем меню управления доком */}
+        {!isGatewayStudent && (
+          <PageHeaderMenuButton
+            rename={onRename}
+            page={page}
+            containerWidth={containerWidth}
+          />
+        )}
       </div>
 
       <div className={styles.spacer} />
 
       {!hidePresent ? <DetailPageHeaderPresentButton /> : null}
 
-      {page && !hideShare ? (
+      {page && !hideShare && !isGatewayStudent ? (
         <SharePageButton workspace={workspace} page={page} />
       ) : null}
 

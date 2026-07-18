@@ -234,6 +234,7 @@ export const PageOperationCell = ({
   });
 
   const favourite = useLiveData(favAdapter.isFavorite$(page.id, 'doc'));
+  const isGatewayStudentUser = useIsGatewayStudent();
 
   const onToggleFavoritePage = useCallback(() => {
     const status = favAdapter.isFavorite(page.id, 'doc');
@@ -254,24 +255,27 @@ export const PageOperationCell = ({
       >
         <FavoriteTag onClick={onToggleFavoritePage} active={favourite} />
       </ColWrapper>
-      <ColWrapper alignment="start">
-        <Menu
-          items={
-            <PageOperationCellMenuItem
-              page={page}
-              isInAllowList={isInAllowList}
-              onRemoveFromAllowList={onRemoveFromAllowList}
-            />
-          }
-          contentOptions={{
-            align: 'end',
-          }}
-        >
-          <IconButton data-testid="page-list-operation-button" size="20">
-            <MoreVerticalIcon />
-          </IconButton>
-        </Menu>
-      </ColWrapper>
+      {/* Fork: студентам не показываем меню управления доком в списке */}
+      {!isGatewayStudentUser && (
+        <ColWrapper alignment="start">
+          <Menu
+            items={
+              <PageOperationCellMenuItem
+                page={page}
+                isInAllowList={isInAllowList}
+                onRemoveFromAllowList={onRemoveFromAllowList}
+              />
+            }
+            contentOptions={{
+              align: 'end',
+            }}
+          >
+            <IconButton data-testid="page-list-operation-button" size="20">
+              <MoreVerticalIcon />
+            </IconButton>
+          </Menu>
+        </ColWrapper>
+      )}
     </>
   );
 };
@@ -452,59 +456,62 @@ export const CollectionOperationCell = ({
       >
         <FavoriteTag onClick={onToggleFavoriteCollection} active={favourite} />
       </ColWrapper>
-      <IconButton
-        onClick={handleEditName}
-        tooltip={t['com.affine.collection.menu.rename']()}
-        tooltipOptions={tooltipSideTop}
-      >
-        <EditIcon />
-      </IconButton>
-      <IconButton
-        onClick={handleEdit}
-        tooltip={t['com.affine.collection.menu.edit']()}
-        tooltipOptions={tooltipSideTop}
-      >
-        <FilterIcon />
-      </IconButton>
-      <ColWrapper alignment="start">
-        <Menu
-          items={
-            <>
-              <MenuItem
-                onClick={onToggleFavoriteCollection}
-                prefixIcon={<IsFavoriteIcon favorite={favourite} />}
-              >
-                {favourite
-                  ? t['com.affine.favoritePageOperation.remove']()
-                  : t['com.affine.favoritePageOperation.add']()}
-              </MenuItem>
-              {!isGatewayStudent && (
-                <MenuItem
-                  onClick={onConfirmAddDocToCollection}
-                  prefixIcon={<PlusIcon />}
-                >
-                  {t['New Page']()}
-                </MenuItem>
-              )}
-              <MenuItem
-                onClick={handleDelete}
-                prefixIcon={<DeleteIcon />}
-                type="danger"
-                data-testid="delete-collection"
-              >
-                {t['Delete']()}
-              </MenuItem>
-            </>
-          }
-          contentOptions={{
-            align: 'end',
-          }}
-        >
-          <IconButton data-testid="collection-item-operation-button">
-            <MoreVerticalIcon />
+      {/* Fork: студентам не показываем управление коллекциями */}
+      {!isGatewayStudent && (
+        <>
+          <IconButton
+            onClick={handleEditName}
+            tooltip={t['com.affine.collection.menu.rename']()}
+            tooltipOptions={tooltipSideTop}
+          >
+            <EditIcon />
           </IconButton>
-        </Menu>
-      </ColWrapper>
+          <IconButton
+            onClick={handleEdit}
+            tooltip={t['com.affine.collection.menu.edit']()}
+            tooltipOptions={tooltipSideTop}
+          >
+            <FilterIcon />
+          </IconButton>
+          <ColWrapper alignment="start">
+            <Menu
+              items={
+                <>
+                  <MenuItem
+                    onClick={onToggleFavoriteCollection}
+                    prefixIcon={<IsFavoriteIcon favorite={favourite} />}
+                  >
+                    {favourite
+                      ? t['com.affine.favoritePageOperation.remove']()
+                      : t['com.affine.favoritePageOperation.add']()}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={onConfirmAddDocToCollection}
+                    prefixIcon={<PlusIcon />}
+                  >
+                    {t['New Page']()}
+                  </MenuItem>
+                  <MenuItem
+                    onClick={handleDelete}
+                    prefixIcon={<DeleteIcon />}
+                    type="danger"
+                    data-testid="delete-collection"
+                  >
+                    {t['Delete']()}
+                  </MenuItem>
+                </>
+              }
+              contentOptions={{
+                align: 'end',
+              }}
+            >
+              <IconButton data-testid="collection-item-operation-button">
+                <MoreVerticalIcon />
+              </IconButton>
+            </Menu>
+          </ColWrapper>
+        </>
+      )}
     </>
   );
 };
@@ -534,6 +541,15 @@ export const TagOperationCell = ({
   const onToggleFavoriteCollection = useCallback(() => {
     favoriteService.favoriteList.toggle('tag', tag.id);
   }, [favoriteService, tag.id]);
+
+  const isGatewayStudentUser = useIsGatewayStudent();
+  const handleOpenRename = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      setOpen(true);
+    },
+    [setOpen]
+  );
   return (
     <>
       <ColWrapper
@@ -551,41 +567,40 @@ export const TagOperationCell = ({
         </div>
       </div>
 
-      <IconButton
-        tooltip={t['Rename']()}
-        tooltipOptions={tooltipSideTop}
-        onClick={useCallback(
-          (e: React.MouseEvent<HTMLButtonElement>) => {
-            e.preventDefault();
-            setOpen(true);
-          },
-          [setOpen]
-        )}
-      >
-        <EditIcon />
-      </IconButton>
-
-      <ColWrapper alignment="start">
-        <Menu
-          items={
-            <MenuItem
-              prefixIcon={<DeleteIcon />}
-              type="danger"
-              onSelect={handleDelete}
-              data-testid="delete-tag"
-            >
-              {t['Delete']()}
-            </MenuItem>
-          }
-          contentOptions={{
-            align: 'end',
-          }}
+      {!isGatewayStudentUser && (
+        <IconButton
+          tooltip={t['Rename']()}
+          tooltipOptions={tooltipSideTop}
+          onClick={handleOpenRename}
         >
-          <IconButton data-testid="tag-item-operation-button">
-            <MoreVerticalIcon />
-          </IconButton>
-        </Menu>
-      </ColWrapper>
+          <EditIcon />
+        </IconButton>
+      )}
+
+      {/* Fork: студентам не показываем управление тегами */}
+      {!isGatewayStudentUser && (
+        <ColWrapper alignment="start">
+          <Menu
+            items={
+              <MenuItem
+                prefixIcon={<DeleteIcon />}
+                type="danger"
+                onSelect={handleDelete}
+                data-testid="delete-tag"
+              >
+                {t['Delete']()}
+              </MenuItem>
+            }
+            contentOptions={{
+              align: 'end',
+            }}
+          >
+            <IconButton data-testid="tag-item-operation-button">
+              <MoreVerticalIcon />
+            </IconButton>
+          </Menu>
+        </ColWrapper>
+      )}
     </>
   );
 };

@@ -8,7 +8,6 @@ import {
   AppearanceIcon,
   ExperimentIcon,
   FolderIcon,
-  InformationIcon,
   KeyboardIcon,
   MeetingIcon,
   NotificationIcon,
@@ -136,22 +135,15 @@ export const useGeneralSettingList = (): GeneralSettingList => {
       });
     }
 
-    // Fork: студентам не показываем экспериментальные фичи и About AFFiNE
+    // Fork: студентам не показываем экспериментальные фичи;
+    // вкладка About AFFiNE убрана для всех
     if (!isGatewayStudent) {
-      settings.push(
-        {
-          key: 'experimental-features',
-          title: t['com.affine.settings.workspace.experimental-features'](),
-          icon: <ExperimentIcon />,
-          testId: 'experimental-features-trigger',
-        },
-        {
-          key: 'about',
-          title: t['com.affine.aboutAFFiNE.title'](),
-          icon: <InformationIcon />,
-          testId: 'about-panel-trigger',
-        }
-      );
+      settings.push({
+        key: 'experimental-features',
+        title: t['com.affine.settings.workspace.experimental-features'](),
+        icon: <ExperimentIcon />,
+        testId: 'experimental-features-trigger',
+      });
     }
     return settings;
   }, [

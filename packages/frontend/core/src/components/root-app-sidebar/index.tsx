@@ -212,7 +212,8 @@ export const RootAppSidebar = memo((): ReactElement => {
           <AddPageButton />
         </div>
         <AllDocsButton />
-        <AppSidebarJournalButton />
+        {/* Fork: студентам не показываем Journals */}
+        {isGatewayStudent ? null : <AppSidebarJournalButton />}
         {sessionStatus === 'authenticated' && <NotificationButton />}
         <AIChatButton />
         <MenuItem

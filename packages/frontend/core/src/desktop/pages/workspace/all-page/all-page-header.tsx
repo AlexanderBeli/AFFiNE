@@ -89,11 +89,14 @@ export const AllDocsHeader = ({
 
       <div className={styles.actions}>
         <ViewToggle view={view} onViewChange={onViewChange} />
-        <ExplorerDisplayMenuButton
-          menuProps={menuProps}
-          displayPreference={displayPreference}
-          onDisplayPreferenceChange={onDisplayPreferenceChange}
-        />
+        {/* Fork: студентам не показываем настройки отображения списка */}
+        {!isStudent && (
+          <ExplorerDisplayMenuButton
+            menuProps={menuProps}
+            displayPreference={displayPreference}
+            onDisplayPreferenceChange={onDisplayPreferenceChange}
+          />
+        )}
         {!isStudent && (
           <PageListNewPageButton
             size="small"
