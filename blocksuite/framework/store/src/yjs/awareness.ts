@@ -11,6 +11,11 @@ export type RawAwarenessState = {
   user?: UserInfo;
   color?: string;
   selectionV2: Record<string, UserSelection>;
+  /**
+   * Fork: broadcast by a peer running presentation mode so that other
+   * collaborators follow the presented frame (teacher → students).
+   */
+  presentation?: { frameId: string; ts: number } | null;
 };
 
 export interface AwarenessEvent {

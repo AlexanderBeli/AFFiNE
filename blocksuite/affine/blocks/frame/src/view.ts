@@ -11,6 +11,7 @@ import { FrameHighlightManager } from './frame-highlight-manager';
 import { FrameBlockSpec } from './frame-spec';
 import { FrameTool } from './frame-tool';
 import { frameToolbarExtension } from './frame-toolbar';
+import { FollowPresentationExtension } from './present/follow-presentation';
 import { edgelessNavigatorBgWidget } from './present/navigator-bg-widget';
 import { PresentTool } from './present-tool';
 
@@ -32,6 +33,7 @@ export class FrameViewExtension extends ViewExtensionProvider {
       context.register(frameQuickTool);
       context.register(frameToolbarExtension);
       context.register(edgelessNavigatorBgWidget);
+      context.register(FollowPresentationExtension);
       context.register(EdgelessClipboardFrameConfig);
       context.register(FrameBlockInteraction);
     }
