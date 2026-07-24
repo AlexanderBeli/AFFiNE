@@ -7,6 +7,7 @@ import { useLiveData, useService } from '@toeverything/infra';
 import { useEffect, useMemo } from 'react';
 
 import { AuthService, SubscriptionService } from '../../../modules/cloud';
+import { usePlatformSignOutRedirect } from '../../hooks/affine/use-platform-sign-out-redirect';
 import { useNavigateHelper } from '../../hooks/use-navigate-helper';
 import * as styles from './styles.css';
 
@@ -53,10 +54,11 @@ export const PublishPageUserAvatar = () => {
   const t = useI18n();
 
   const navigateHelper = useNavigateHelper();
+  const redirectAfterSignOut = usePlatformSignOutRedirect();
   const handleSignOut = useAsyncCallback(async () => {
     await authService.signOut();
-    navigateHelper.jumpToSignIn();
-  }, [authService, navigateHelper]);
+    redirectAfterSignOut(() => navigateHelper.jumpToSignIn());
+  }, [authService, navigateHelper, redirectAfterSignOut]);
 
   const menuItem = useMemo(() => {
     return (

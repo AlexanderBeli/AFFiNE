@@ -14,7 +14,7 @@ import {
   ServerService,
 } from '@affine/core/modules/cloud';
 import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
-import { ServerDeploymentType } from '@affine/graphql';
+import { OAuthProviderType, ServerDeploymentType } from '@affine/graphql';
 import { Trans, useI18n } from '@affine/i18n';
 import {
   ArrowRightBigIcon,
@@ -68,6 +68,13 @@ export const SignInStep = ({
   const signInServerName = isSelfhosted
     ? getSelfHostedServerName(serverName)
     : serverName;
+  const oauthProviders = useLiveData(
+    serverService.server.config$.selector(c => c.oauthProviders)
+  );
+  // Platform mode: the gateway owns credentials, so OIDC is the only entry —
+  // email/password fields stay hidden while the OIDC provider is configured.
+  const isOidcOnly =
+    isSelfhosted && !!oauthProviders?.includes(OAuthProviderType.OIDC);
   const authService = useService(AuthService);
   const [isMutating, setIsMutating] = useState(false);
 
@@ -165,41 +172,43 @@ export const SignInStep = ({
       <AuthContent>
         <OAuth redirectUrl={state.redirectUrl} />
 
-        <form
-          onSubmit={event => {
-            event.preventDefault();
-            onContinue();
-          }}
-        >
-          <AuthInput
-            className={style.authInput}
-            label={t['com.affine.settings.email']()}
-            placeholder={t['com.affine.auth.sign.email.placeholder']()}
-            onChange={setEmail}
-            error={!isValidEmail}
-            errorHint={
-              isValidEmail ? '' : t['com.affine.auth.sign.email.error']()
-            }
-            onEnter={onContinue}
-            type="email"
-            name="username"
-            autoComplete="username"
-          />
-
-          <Button
-            className={style.signInButton}
-            style={{ width: '100%' }}
-            size="extraLarge"
-            data-testid="continue-login-button"
-            block
-            loading={isMutating}
-            disabled={isMutating}
-            suffix={<ArrowRightBigIcon />}
-            suffixStyle={{ width: 20, height: 20, color: cssVar('blue') }}
+        {!isOidcOnly && (
+          <form
+            onSubmit={event => {
+              event.preventDefault();
+              onContinue();
+            }}
           >
-            {t['com.affine.auth.sign.email.continue']()}
-          </Button>
-        </form>
+            <AuthInput
+              className={style.authInput}
+              label={t['com.affine.settings.email']()}
+              placeholder={t['com.affine.auth.sign.email.placeholder']()}
+              onChange={setEmail}
+              error={!isValidEmail}
+              errorHint={
+                isValidEmail ? '' : t['com.affine.auth.sign.email.error']()
+              }
+              onEnter={onContinue}
+              type="email"
+              name="username"
+              autoComplete="username"
+            />
+
+            <Button
+              className={style.signInButton}
+              style={{ width: '100%' }}
+              size="extraLarge"
+              data-testid="continue-login-button"
+              block
+              loading={isMutating}
+              disabled={isMutating}
+              suffix={<ArrowRightBigIcon />}
+              suffixStyle={{ width: 20, height: 20, color: cssVar('blue') }}
+            >
+              {t['com.affine.auth.sign.email.continue']()}
+            </Button>
+          </form>
+        )}
 
         {!isSelfhosted && (
           <>

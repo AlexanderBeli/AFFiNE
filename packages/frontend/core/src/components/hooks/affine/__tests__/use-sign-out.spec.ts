@@ -84,12 +84,15 @@ describe('useSignOut', () => {
     expect(jumpToSignIn).not.toHaveBeenCalled();
   });
 
-  test('redirects to sign in when guest demo disabled', async () => {
+  test('redirects to clear-session when guest demo disabled', async () => {
     allowGuestDemo = false;
     const { result } = renderHook(() => useSignOut());
     result.current();
     await waitFor(() => expect(signOutFn).toHaveBeenCalled());
-    expect(jumpToSignIn).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(window.location.href).toContain('/clear-session?next=platform')
+    );
+    expect(jumpToSignIn).not.toHaveBeenCalled();
     expect(jumpToIndex).not.toHaveBeenCalled();
   });
 });

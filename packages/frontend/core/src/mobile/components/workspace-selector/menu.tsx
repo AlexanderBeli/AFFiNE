@@ -1,5 +1,6 @@
 import { Divider, IconButton, Menu, MenuItem } from '@affine/component';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
+import { usePlatformSignOutRedirect } from '@affine/core/components/hooks/affine/use-platform-sign-out-redirect';
 import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
 import { useWorkspaceInfo } from '@affine/core/components/hooks/use-workspace-info';
 import { WorkspaceAvatar } from '@affine/core/components/workspace-avatar';
@@ -226,10 +227,11 @@ const CloudWorkSpaceList = ({
     workspaces,
   ]);
 
+  const redirectAfterSignOut = usePlatformSignOutRedirect();
   const handleSignOut = useAsyncCallback(async () => {
     await authService.signOut();
-    navigateHelper.jumpToSignIn();
-  }, [authService, navigateHelper]);
+    redirectAfterSignOut(() => navigateHelper.jumpToSignIn());
+  }, [authService, navigateHelper, redirectAfterSignOut]);
 
   const handleSignIn = useAsyncCallback(async () => {
     globalDialogService.open('sign-in', {
