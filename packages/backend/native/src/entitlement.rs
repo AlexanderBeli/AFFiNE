@@ -442,13 +442,13 @@ fn plan_catalog(plan: &str, quantity: Option<i32>) -> PlanQuota {
         unlimited_copilot: false,
       }
     }
-    // Personal fork: generous self-host limits (stock: 100MB/100GB/10 seats)
+    // Personal fork: self-host limits (stock: 100MB/100GB/10 seats)
     "selfhost_free" => PlanQuota {
       name: "selfhost_free",
       blob_limit: 1024 * ONE_MB,
-      storage_quota: 10240 * ONE_GB,
+      storage_quota: 100 * ONE_GB,
       history_period: 365 * ONE_DAY_SECONDS,
-      member_limit: Some(50),
+      member_limit: Some(20),
       seat_quota: None,
       copilot_action_limit: Some(10),
       unlimited_copilot: false,
@@ -563,7 +563,8 @@ Hc3w7v4FGmoA5MNzzhrkho1ckDYw2wrX6zBnehFzcivURv80HherE2GQjg==\n\
       ("lifetime_pro", None, 10, 1024 * ONE_GB, Some(10)),
       ("team", Some(5), 5, 200 * ONE_GB, None),
       ("selfhost_team", Some(20), 20, 500 * ONE_GB, None),
-      ("selfhost_free", None, 10, 100 * ONE_GB, Some(10)),
+      // Fork: selfhost_free raised to 20 seats (stock 10); storage stays 100 GB
+      ("selfhost_free", None, 20, 100 * ONE_GB, Some(10)),
     ];
 
     for (plan, quantity, seat_limit, storage_quota, copilot_limit) in cases {
