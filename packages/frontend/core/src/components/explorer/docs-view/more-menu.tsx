@@ -11,6 +11,7 @@ import { DocsService } from '@affine/core/modules/doc';
 import { CompatibleFavoriteItemsAdapter } from '@affine/core/modules/favorite';
 import { GuardService } from '@affine/core/modules/permissions';
 import { WorkbenchService } from '@affine/core/modules/workbench';
+import { WorkspaceService } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
 import {
@@ -24,6 +25,7 @@ import {
 import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useContext } from 'react';
 
+import { CopyToWorkspaceMenu } from '../../copy-to-workspace-menu';
 import { useBlockSuiteMetaHelper } from '../../hooks/affine/use-block-suite-meta-helper';
 import { useIsGatewayStudent } from '../../hooks/use-is-gateway-student';
 import { IsFavoriteIcon } from '../../pure/icons';
@@ -141,6 +143,23 @@ const Duplicate = ({ docId }: DocOperationProps) => {
 };
 
 /**
+ * Copy to Workspace Operation
+ *
+ * Fork: template workflow — copy the doc into another workspace the user
+ * belongs to, without opening it first.
+ */
+const CopyToWorkspace = ({ docId }: DocOperationProps) => {
+  const currentWorkspace = useService(WorkspaceService).workspace;
+
+  return (
+    <CopyToWorkspaceMenu
+      docId={docId}
+      currentWorkspaceId={currentWorkspace.id}
+    />
+  );
+};
+
+/**
  * Move to Trash Operation
  */
 const MoveToTrash = ({ docId }: DocOperationProps) => {
@@ -195,6 +214,7 @@ export const MoreMenuContent = (props: DocOperationProps) => {
       <NewTab {...props} />
       {BUILD_CONFIG.isElectron ? <SplitView {...props} /> : null}
       {!isGatewayStudent && <Duplicate {...props} />}
+      {!isGatewayStudent && <CopyToWorkspace {...props} />}
       <MoveToTrash {...props} />
     </>
   );
