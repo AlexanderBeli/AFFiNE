@@ -102,3 +102,7 @@ storageState.json
 /.playwright-browsers/
 **/.vitest-attachments/
 /blocksuite/framework/std/src/__tests__/gfx/__screenshots__/
+
+# Cross-compilation target dirs used by the local linux/amd64 native build
+target-linux-x64/
+target-linux-arm64/
