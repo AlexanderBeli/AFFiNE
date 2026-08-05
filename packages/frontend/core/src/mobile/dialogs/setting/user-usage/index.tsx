@@ -1,12 +1,6 @@
 import { Skeleton } from '@affine/component';
-import {
-  AuthService,
-  ServerService,
-  UserCopilotQuotaService,
-  UserQuotaService,
-} from '@affine/core/modules/cloud';
+import { AuthService, UserQuotaService } from '@affine/core/modules/cloud';
 import { useLiveData, useService } from '@toeverything/infra';
-import { cssVar } from '@toeverything/theme';
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { type ReactNode, useEffect } from 'react';
 
@@ -71,13 +65,11 @@ const Loading = () => {
 };
 
 const UsagePanel = () => {
-  const serverService = useService(ServerService);
-  const serverFeatures = useLiveData(serverService.server.features$);
-
+  // AI usage row intentionally not rendered: this self-host fork has no
+  // copilot action cap, so a "used / limit" meter would be meaningless.
   return (
     <SettingGroup title="Storage" contentStyle={{ padding: '10px 16px' }}>
       <CloudUsage />
-      {serverFeatures?.copilot ? <AiUsage /> : null}
     </SettingGroup>
   );
 };
@@ -104,49 +96,6 @@ const CloudUsage = () => {
       name="Cloud"
       percent={percent}
       desc={`${usedFormatted}/${maxFormatted}`}
-      color={color}
-    />
-  );
-};
-const AiUsage = () => {
-  const copilotQuotaService = useService(UserCopilotQuotaService);
-
-  const copilotActionLimit = useLiveData(
-    copilotQuotaService.copilotQuota.copilotActionLimit$
-  );
-  const copilotActionUsed = useLiveData(
-    copilotQuotaService.copilotQuota.copilotActionUsed$
-  );
-  const loading = copilotActionLimit === null || copilotActionUsed === null;
-  const loadError = useLiveData(copilotQuotaService.copilotQuota.error$);
-
-  useEffect(() => {
-    copilotQuotaService.copilotQuota.revalidate();
-  }, [copilotQuotaService]);
-
-  if (loading || loadError) {
-    return <Loading />;
-  }
-
-  if (copilotActionLimit === 'unlimited') {
-    return null;
-  }
-
-  const percent = Math.min(
-    100,
-    Math.max(
-      0.5,
-      Number(((copilotActionUsed / copilotActionLimit) * 100).toFixed(4))
-    )
-  );
-
-  const color = percent > 80 ? cssVar('errorColor') : cssVar('processingColor');
-
-  return (
-    <Progress
-      name="AI"
-      percent={percent}
-      desc={`${copilotActionUsed}/${copilotActionLimit}`}
       color={color}
     />
   );
