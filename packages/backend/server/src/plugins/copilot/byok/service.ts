@@ -773,7 +773,12 @@ export class ByokService {
       {
         timeoutMs: TEST_TIMEOUT_MS,
         maxRedirects: 3,
-        maxBytes: 1024,
+        // 1024 was too small for a real key: Anthropic's /v1/models with a
+        // valid key returns the full model list (capabilities per model),
+        // well over 1KB, and got rejected as response_too_large_error --
+        // which isn't a BadRequestException, so it surfaced as the generic
+        // "Provider request failed." with no indication of the real cause.
+        maxBytes: 65536,
         allowedHeaders: Object.keys(request.headers),
       }
     );

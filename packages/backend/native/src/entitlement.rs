@@ -442,7 +442,11 @@ fn plan_catalog(plan: &str, quantity: Option<i32>) -> PlanQuota {
         unlimited_copilot: false,
       }
     }
-    // Personal fork: self-host limits (stock: 100MB/100GB/10 seats)
+    // Personal fork: self-host limits (stock: 100MB/100GB/10 seats).
+    // copilot_action_limit is None (stock: Some(10)) because AI usage on this
+    // deployment is paid for directly through BYOK provider keys, so the cloud
+    // free-tier action cap does not apply. None is the established "unlimited"
+    // representation here (see the "ai" and "team" arms).
     "selfhost_free" => PlanQuota {
       name: "selfhost_free",
       blob_limit: 1024 * ONE_MB,
@@ -450,7 +454,7 @@ fn plan_catalog(plan: &str, quantity: Option<i32>) -> PlanQuota {
       history_period: 365 * ONE_DAY_SECONDS,
       member_limit: Some(20),
       seat_quota: None,
-      copilot_action_limit: Some(10),
+      copilot_action_limit: None,
       unlimited_copilot: false,
     },
     _ => PlanQuota {
@@ -563,8 +567,9 @@ Hc3w7v4FGmoA5MNzzhrkho1ckDYw2wrX6zBnehFzcivURv80HherE2GQjg==\n\
       ("lifetime_pro", None, 10, 1024 * ONE_GB, Some(10)),
       ("team", Some(5), 5, 200 * ONE_GB, None),
       ("selfhost_team", Some(20), 20, 500 * ONE_GB, None),
-      // Fork: selfhost_free raised to 20 seats (stock 10); storage stays 100 GB
-      ("selfhost_free", None, 20, 100 * ONE_GB, Some(10)),
+      // Fork: selfhost_free raised to 20 seats (stock 10); storage stays 100 GB.
+      // copilot_action_limit is None (stock Some(10)) — uncapped, BYOK-funded.
+      ("selfhost_free", None, 20, 100 * ONE_GB, None),
     ];
 
     for (plan, quantity, seat_limit, storage_quota, copilot_limit) in cases {

@@ -199,6 +199,10 @@ declare global {
         key: string;
       }>;
       storage: ConfigItem<StorageProviderConfig>;
+      // Built-in prompts carry a hardcoded `model`, compiled into the native
+      // binary. This lets an operator repoint any of them at runtime, keyed by
+      // prompt name, without rebuilding the image.
+      promptModelOverrides: ConfigItem<Record<string, string>>;
       providers: {
         profiles: ConfigItem<CopilotProviderProfile[]>;
         defaults: ConfigItem<CopilotProviderDefaults>;
@@ -311,5 +315,10 @@ defineModuleConfig('copilot', {
       },
     },
     schema: StorageJSONSchema,
+  },
+  promptModelOverrides: {
+    desc: 'Override the model a built-in prompt runs on, keyed by prompt name (e.g. {"Code Artifact": "claude-haiku-4-5"}). Takes effect without a rebuild.',
+    default: {},
+    shape: z.record(z.string(), z.string()),
   },
 });

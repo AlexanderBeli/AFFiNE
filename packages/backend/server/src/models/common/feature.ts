@@ -144,6 +144,10 @@ const TeamFeature = {
 
 // Personal self-host fork: raised per-file limit and seats over the stock
 // selfhosted defaults (ProFeature: 100 MB blob / 100 GB storage / 10 seats).
+// copilotActionLimit is deliberately omitted: the schema marks it optional and
+// ConversationPolicy.hasQuota() treats an undefined limit as unlimited. AI usage
+// here is paid for directly via BYOK provider keys, so the stock 10-action cloud
+// cap does not apply.
 const SelfhostFeature = {
   type: FeatureType.Quota,
   configs: {
@@ -152,7 +156,6 @@ const SelfhostFeature = {
     storageQuota: 100 * OneGB,
     historyPeriod: 365 * OneDay,
     memberLimit: 20,
-    copilotActionLimit: 10,
   },
 } as const;
 

@@ -4711,8 +4711,6 @@ dependencies = [
 [[package]]
 name = "llm_adapter"
 version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5edfe10ad51d5301468a395532cb0068caac1057fbda942edebe423fe585509"
 dependencies = [
  "base64",
  "jsonschema",

@@ -10,6 +10,7 @@ import { CopilotContextService } from '../context/service';
 import {
   type CopilotChatOptions,
   type CopilotChatTools,
+  type PromptMessage,
 } from '../providers/types';
 import {
   buildBlobContentGetter,
@@ -68,9 +69,19 @@ export class ToolRuntime {
     }
     const runPromptText = (
       promptName: string,
-      params: Record<string, unknown>
+      params: Record<string, unknown>,
+      // Callers (doc_compose, section_edit, ...) pass the user's actual
+      // request in here. This parameter used to be missing, so the argument
+      // was silently dropped and those prompts ran without the user's input.
+      runOptions?: { appendMessages?: PromptMessage[] }
     ) =>
       this.promptRuntime.runText(promptName, params, {
+        // Tool-invoked prompts inherit the model selected for the chat, so
+        // picking e.g. Haiku applies to doc_compose too. This is only honoured
+        // when the prompt lists the model in its `optionalModels`; otherwise
+        // resolvePromptModel falls back to the prompt's own default.
+        modelId: model,
+        appendMessages: runOptions?.appendMessages,
         providerOptions: {
           user: options.user,
           session: options.session,

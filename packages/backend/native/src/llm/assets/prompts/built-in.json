@@ -63,7 +63,7 @@
   {
     "name": "Conversation Summary",
     "action": "Conversation Summary",
-    "model": "gpt-5-mini",
+    "model": "gemini-2.5-flash",
     "config": {
       "requireContent": false
     },
@@ -76,6 +76,13 @@
         "role": "user",
         "template": "Summarize the conversation below so it can be carried forward without loss.\n\nFocus: {{focus}}\nDesired length: {{length}}\n\nConversation:\n{{#messages}}\n{{role}}: {{content}}\n{{/messages}}"
       }
+    ],
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ]
   },
   {
@@ -123,7 +130,9 @@
     "name": "Explain this",
     "action": "Explain this",
     "model": "gpt-5-mini",
-    "builtins": ["language"],
+    "builtins": [
+      "language"
+    ],
     "messages": [
       {
         "role": "system",
@@ -250,7 +259,14 @@
   {
     "name": "Write an article about this",
     "action": "Write an article about this",
-    "model": "gemini-2.5-pro",
+    "model": "gemini-2.5-flash",
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
+    ],
     "messages": [
       {
         "role": "system",
@@ -295,7 +311,14 @@
   {
     "name": "Write a blog post about this",
     "action": "Write a blog post about this",
-    "model": "gemini-2.5-pro",
+    "model": "gemini-2.5-flash",
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
+    ],
     "messages": [
       {
         "role": "system",
@@ -329,7 +352,13 @@
     "params": {
       "tone": {
         "default": "professional",
-        "enum": ["professional", "informal", "friendly", "critical", "humorous"]
+        "enum": [
+          "professional",
+          "informal",
+          "friendly",
+          "critical",
+          "humorous"
+        ]
       }
     },
     "messages": [
@@ -500,7 +529,7 @@
   {
     "name": "Make it real",
     "action": "Make it real",
-    "model": "claude-sonnet-4-5@20250929",
+    "model": "gemini-2.5-flash",
     "messages": [
       {
         "role": "system",
@@ -510,12 +539,19 @@
         "role": "user",
         "template": "Write a web page of follow text:\n{{>guarded_content}}"
       }
+    ],
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ]
   },
   {
     "name": "Make it real with text",
     "action": "Make it real with text",
-    "model": "claude-sonnet-4-5@20250929",
+    "model": "gemini-2.5-flash",
     "messages": [
       {
         "role": "system",
@@ -525,6 +561,13 @@
         "role": "user",
         "template": "Write a web page of follow text:\n{{>guarded_content}}"
       }
+    ],
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ]
   },
   {
@@ -575,7 +618,7 @@
   {
     "name": "Section Edit",
     "action": "Section Edit",
-    "model": "claude-sonnet-4@20250514",
+    "model": "gemini-2.5-flash",
     "messages": [
       {
         "role": "system",
@@ -585,6 +628,13 @@
         "role": "user",
         "template": "Please modify the following text according to these instructions: \"{{instructions}}\"\n\nFull document context:\n{{document}}\n\nSection to edit:\n{{content}}\n\nPlease return only the modified section, maintaining consistency with the overall document context."
       }
+    ],
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ]
   },
   {
@@ -688,7 +738,7 @@
   },
   {
     "name": "Code Artifact",
-    "model": "claude-sonnet-4-5@20250929",
+    "model": "gemini-2.5-flash",
     "messages": [
       {
         "role": "system",
@@ -698,6 +748,13 @@
         "role": "user",
         "template": "{{content}}"
       }
+    ],
+    "optionalModels": [
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-3.5-flash",
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ]
   },
   {
@@ -707,7 +764,8 @@
       "gemini-2.5-flash",
       "gemini-2.5-pro",
       "gemini-3.5-flash",
-      "claude-sonnet-4-6"
+      "claude-sonnet-4-6",
+      "claude-haiku-4-5"
     ],
     "config": {
       "tools": [
@@ -722,7 +780,7 @@
         "codeArtifact",
         "blobRead"
       ],
-      "proModels": ["gemini-2.5-pro", "gemini-3.5-flash", "claude-sonnet-4-6"]
+      "proModels": []
     },
     "builtins": [
       "date",

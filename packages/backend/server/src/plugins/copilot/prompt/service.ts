@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { Config } from '../../../base';
 import type { PromptMessage, PromptParams } from '../providers/types';
 import {
   collectPromptMetadataNative,
@@ -15,20 +16,49 @@ import type { Prompt, PromptSpec, ResolvedPrompt } from './spec';
 @Injectable()
 export class PromptService {
   protected readonly logger = new Logger(PromptService.name);
-  constructor() {
+  constructor(private readonly config: Config) {
     this.logger.log('Using native built-in prompt catalog.');
   }
 
   async get(name: string): Promise<ResolvedPrompt | null> {
     const compatPrompt = this.lookupCompatPrompt(name);
     if (compatPrompt) {
-      return this.describeCompatPrompt(this.clonePrompt(compatPrompt));
+      return this.applyModelOverride(
+        this.describeCompatPrompt(this.clonePrompt(compatPrompt))
+      );
     }
 
     const builtInPromptSpec = this.lookupBuiltInPromptSpec(name);
     if (!builtInPromptSpec) return null;
 
-    return this.describeBuiltInPromptSpec(builtInPromptSpec);
+    return this.applyModelOverride(
+      this.describeBuiltInPromptSpec(builtInPromptSpec)
+    );
+  }
+
+  /**
+   * Built-in prompts hardcode their model in the native binary, so changing one
+   * normally means a full rebuild. `copilot.promptModelOverrides` repoints a
+   * prompt by name at runtime. The override is also appended to
+   * `optionalModels`, otherwise ModelSelectionPolicy would reject it as an
+   * unlisted model and silently fall back to the built-in default.
+   */
+  private applyModelOverride(prompt: ResolvedPrompt): ResolvedPrompt {
+    const override = this.config.copilot.promptModelOverrides?.[prompt.name];
+    if (!override || override === prompt.model) {
+      return prompt;
+    }
+
+    this.logger.log(
+      `Prompt "${prompt.name}" model overridden: ${prompt.model} -> ${override}`
+    );
+    return {
+      ...prompt,
+      model: override,
+      optionalModels: prompt.optionalModels.includes(override)
+        ? prompt.optionalModels
+        : [...prompt.optionalModels, override],
+    };
   }
 
   finish(
