@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -27,6 +28,13 @@ export class StaticFilesResolver implements OnModuleInit {
     // for example, '/affine' in host [//host.com/affine]
     const basePath = this.config.server.path;
     const staticPath = join(env.projectRoot, 'static');
+    const entryHtml = env.selfhosted ? 'selfhost.html' : 'index.html';
+    // The mobile web bundle is shipped in the self-host image
+    // (see .github/deployment/node/Dockerfile). Serve it to phones whenever
+    // it is present, and fall back to the desktop bundle for builds that omit
+    // it — instead of gating on the `dev` namespace, which left every
+    // production self-host serving the desktop layout to mobile browsers.
+    const hasMobileBundle = existsSync(join(staticPath, 'mobile', entryHtml));
 
     // web => {
     //   affine: 'static/index.html',
@@ -109,18 +117,12 @@ export class StaticFilesResolver implements OnModuleInit {
     // fallback all unknown routes
     app.get([basePath, basePath + '/*path'], this.check.use, (req, res) => {
       const mobile =
-        env.namespaces.canary &&
+        hasMobileBundle &&
         isMobile({
           ua: req.headers['user-agent'] ?? undefined,
         });
 
-      return res.sendFile(
-        join(
-          staticPath,
-          mobile ? 'mobile' : '',
-          env.selfhosted ? 'selfhost.html' : 'index.html'
-        )
-      );
+      return res.sendFile(join(staticPath, mobile ? 'mobile' : '', entryHtml));
     });
     // END REGION
   }

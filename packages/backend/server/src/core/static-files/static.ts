@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -37,8 +38,11 @@ export class StaticFilesResolver implements OnModuleInit {
     const rootPath = basePath || '/';
     const staticPath = join(env.projectRoot, 'static');
     const adminPath = join(staticPath, 'admin');
-    const mobilePath = env.namespaces.canary
-      ? join(staticPath, 'mobile')
+    const mobileDir = join(staticPath, 'mobile');
+    // Route phones to the mobile bundle whenever it is present in this
+    // deployment, rather than only in the `dev` namespace.
+    const mobilePath = existsSync(join(mobileDir, 'index.html'))
+      ? mobileDir
       : staticPath;
 
     const staticAsset = serveStatic(staticPath, {

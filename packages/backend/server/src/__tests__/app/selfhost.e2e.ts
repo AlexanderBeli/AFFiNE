@@ -49,6 +49,13 @@ export class TestResolver {
 test.before('init selfhost server', async t => {
   // @ts-expect-error override
   globalThis.env.DEPLOYMENT_TYPE = 'selfhosted';
+
+  // The self-host image bakes the static bundles in before the server boots,
+  // so lay them down before creating the app — the static resolver decides
+  // whether to serve the mobile bundle at module init time.
+  const staticPath = path.join(env.projectRoot, 'static');
+  initTestStaticFiles(staticPath);
+
   const app = await createTestingApp({
     imports: [buildAppModule(globalThis.env)],
     controllers: [TestResolver],
@@ -56,9 +63,6 @@ test.before('init selfhost server', async t => {
 
   t.context.app = app;
   t.context.db = t.context.app.get(PrismaClient);
-
-  const staticPath = path.join(env.projectRoot, 'static');
-  initTestStaticFiles(staticPath);
 });
 
 test.beforeEach(async t => {
@@ -196,8 +200,7 @@ test('should redirect to admin if initialized', async t => {
   t.is(res.header.location, '/admin');
 });
 
-// TODO(@forehalo): return mobile when it's ready
-test.skip('should return web assets if visited by mobile', async t => {
+test('should return the mobile bundle when visited by a mobile browser', async t => {
   await t.context.db.user.create({
     data: {
       name: 'test',
@@ -205,12 +208,19 @@ test.skip('should return web assets if visited by mobile', async t => {
     },
   });
 
-  const res = await request(t.context.app.getHttpServer())
+  const mobileRes = await request(t.context.app.getHttpServer())
     .get('/')
     .set('user-agent', mobileUAString)
     .expect(200);
 
-  t.true(res.text.includes('AFFiNE mobile'));
+  t.true(mobileRes.text.includes('AFFiNE mobile'));
+
+  // Desktop browsers keep the desktop bundle.
+  const desktopRes = await request(t.context.app.getHttpServer())
+    .get('/')
+    .expect(200);
+
+  t.false(desktopRes.text.includes('AFFiNE mobile'));
 });
 
 test('should can send maximum size of body', async t => {

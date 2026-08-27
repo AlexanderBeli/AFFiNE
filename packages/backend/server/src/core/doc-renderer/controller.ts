@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Controller, Get, Logger, Req, Res } from '@nestjs/common';
@@ -56,6 +56,10 @@ export class DocRendererController {
   private readonly logger = new Logger(DocRendererController.name);
   private readonly webAssets: HtmlAssets = defaultAssets;
   private readonly mobileAssets: HtmlAssets = defaultAssets;
+  // Whether a distinct mobile web bundle is shipped alongside the desktop one.
+  private readonly hasMobileAssets: boolean = existsSync(
+    join(env.projectRoot, 'static/mobile/assets-manifest.json')
+  );
 
   constructor(
     private readonly doc: DocReader,
@@ -80,7 +84,7 @@ export class DocRendererController {
   @Get('/*path')
   async render(@Req() req: Request, @Res() res: Response) {
     const assets: HtmlAssets =
-      env.namespaces.canary &&
+      this.hasMobileAssets &&
       isMobile({
         ua: req.headers['user-agent'] ?? undefined,
       })

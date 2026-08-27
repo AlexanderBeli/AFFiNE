@@ -140,7 +140,72 @@ test.serial(
   }
 );
 
-test.serial('uses mobile root only in dev namespace for mobile UA', async t => {
+test.serial(
+  'serves the mobile bundle to mobile UAs whenever it is present',
+  async t => {
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'affine-static-files-'));
+    initStaticFixture(fixtureRoot);
+
+    const prevProjectRoot = env.projectRoot;
+    const prevNamespace = env.NAMESPACE;
+
+    try {
+      // @ts-expect-error test override
+      env.projectRoot = fixtureRoot;
+      // @ts-expect-error test override
+      env.NAMESPACE = Namespace.Production;
+
+      const app = await createApp();
+
+      const mobileAssetRes = await request(app)
+        .get('/assets/main.js')
+        .set('user-agent', mobileUA)
+        .expect(200);
+      t.is(mobileAssetRes.text, 'mobile-asset');
+
+      const webAssetRes = await request(app).get('/assets/main.js').expect(200);
+      t.is(webAssetRes.text, 'web-asset');
+    } finally {
+      // @ts-expect-error test override
+      env.projectRoot = prevProjectRoot;
+      // @ts-expect-error test override
+      env.NAMESPACE = prevNamespace;
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  }
+);
+
+test.serial('falls back to the web bundle when no mobile bundle exists', async t => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'affine-static-files-'));
+  initStaticFixture(fixtureRoot);
+  rmSync(join(fixtureRoot, 'static', 'mobile'), { recursive: true, force: true });
+
+  const prevProjectRoot = env.projectRoot;
+  const prevNamespace = env.NAMESPACE;
+
+  try {
+    // @ts-expect-error test override
+    env.projectRoot = fixtureRoot;
+    // @ts-expect-error test override
+    env.NAMESPACE = Namespace.Production;
+
+    const app = await createApp();
+
+    const res = await request(app)
+      .get('/assets/main.js')
+      .set('user-agent', mobileUA)
+      .expect(200);
+    t.is(res.text, 'web-asset');
+  } finally {
+    // @ts-expect-error test override
+    env.projectRoot = prevProjectRoot;
+    // @ts-expect-error test override
+    env.NAMESPACE = prevNamespace;
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test.serial('honours client hints when routing mobile vs desktop assets', async t => {
   const fixtureRoot = mkdtempSync(join(tmpdir(), 'affine-static-files-'));
   initStaticFixture(fixtureRoot);
 
