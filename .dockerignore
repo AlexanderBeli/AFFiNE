@@ -5,6 +5,10 @@
 # Local dependency/build artifacts
 /node_modules
 /target
+# Cross-build cargo target dirs (~10 GB); the .node blobs the image needs
+# are copied in via packages/backend/server/dist.
+/target-linux-x64
+/target-linux-arm64
 
 # Yarn v4 artifacts (not needed for image packaging)
 /.yarn/cache
