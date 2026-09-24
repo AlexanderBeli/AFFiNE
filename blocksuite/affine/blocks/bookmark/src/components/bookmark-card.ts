@@ -100,7 +100,7 @@ export class BookmarkCard extends SignalWatcher(
           <div class="affine-bookmark-content-url-wrapper">
             <div
               class="affine-bookmark-content-url"
-              @click=${this.bookmark.open}
+              @click=${this._handleUrlClick}
             >
               <span>${getHostName(url)}</span>
               <div class="affine-bookmark-content-url-icon">
@@ -113,6 +113,13 @@ export class BookmarkCard extends SignalWatcher(
       </div>
     `;
   }
+
+  // Stop the click here: bubbling to the card's own handler would open the
+  // link a second time in read-only mode.
+  private readonly _handleUrlClick = (event: MouseEvent) => {
+    event.stopPropagation();
+    this.bookmark.open();
+  };
 
   @property({ attribute: false })
   accessor bookmark!: BookmarkBlockComponent;

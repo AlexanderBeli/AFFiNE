@@ -142,16 +142,24 @@ export class BookmarkBlockComponent extends CaptionedBlockComponent<BookmarkBloc
   handleClick = (event: MouseEvent) => {
     event.stopPropagation();
 
-    if (
-      this.model.parent?.flavour !== 'affine:surface' &&
-      !this.store.readonly
-    ) {
+    // Read-only viewers (e.g. a doc shared as "Read only") cannot select the
+    // card, so a single click did nothing and the link was unreachable. Open
+    // it directly instead, like a plain link. `detail > 1` is the second click
+    // of a double click — ignore it so one gesture opens one tab.
+    if (this.store.readonly) {
+      if (event.detail <= 1) this.open();
+      return;
+    }
+
+    if (this.model.parent?.flavour !== 'affine:surface') {
       this.selectBlock();
     }
   };
 
   handleDoubleClick = (event: MouseEvent) => {
     event.stopPropagation();
+    // In read-only mode the single click has already opened the link.
+    if (this.store.readonly) return;
     this.open();
   };
 

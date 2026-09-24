@@ -46,13 +46,16 @@ export class BookmarkEdgelessBlockComponent extends toGfxBlockComponent(
     const scaleX = bound.w / width;
     const scaleY = bound.h / height;
     const isSelected = this.gfx.selection.has(this.model.id);
+    // Read-only viewers can never select the card, so gating pointer events on
+    // selection made it (and its link) unclickable on a shared board.
+    const isInteractive = isSelected || this.store.readonly$.value;
 
     this.containerStyleMap = styleMap({
       width: `100%`,
       height: `100%`,
       transform: `scale(${scaleX}, ${scaleY})`,
       transformOrigin: '0 0',
-      pointerEvents: isSelected ? 'auto' : 'none',
+      pointerEvents: isInteractive ? 'auto' : 'none',
     });
 
     return this.renderPageContent();
