@@ -4,7 +4,6 @@ import { useLiveData, useService } from '@toeverything/infra';
 
 import { ImportTemplateButton } from './import-template';
 import { PresentButton } from './present';
-import { SignIn } from './sign-in';
 import * as styles from './styles.css';
 import { PublishPageUserAvatar } from './user-avatar';
 
@@ -32,7 +31,8 @@ const ShareHeaderRightItem = ({
         />
       ) : (
         <>
-          {authenticated ? null : <SignIn />}
+          {/* SpeakZone: на общих досках для учеников нет «Login or Sign Up»
+              (вход — только через платформу, OIDC). */}
           {publishMode === 'edgeless' ? <PresentButton /> : null}
           {authenticated ? (
             <>
