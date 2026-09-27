@@ -80,6 +80,15 @@ export abstract class OAuthProvider {
     return false;
   }
 
+  /**
+   * Whether a request to this URL may target a private IP. Off by default
+   * (SSRF protection); the OIDC provider allows it only for its own
+   * configured issuer — see OIDCProvider.allowPrivateTarget.
+   */
+  protected allowPrivateTarget(_url: string): boolean {
+    return false;
+  }
+
   protected async fetchJson<T>(
     url: string,
     init?: RequestInit,
@@ -93,6 +102,7 @@ export abstract class OAuthProvider {
         maxRedirects: 3,
         maxBytes: 1024 * 1024,
         allowedHeaders: ['authorization', 'content-type', 'accept'],
+        allowPrivateTargetOrigin: this.allowPrivateTarget(url),
       }
     );
 

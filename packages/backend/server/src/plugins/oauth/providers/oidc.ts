@@ -77,7 +77,35 @@ export class OIDCProvider extends OAuthProvider implements OnModuleDestroy {
   override provider = OAuthProviderName.OIDC;
   #endpoints: OIDCConfiguration | null = null;
   #jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
-  private readonly oidcFetch = safeFetch;
+  /**
+   * Self-hosted behind a reverse proxy, the issuer (e.g. the platform's own
+   * gateway on the same host) can resolve to a private address from inside
+   * the container: with Traefik ports published in `mode: host`, a container
+   * cannot hairpin back through the server's public IP, so the issuer host is
+   * mapped to the proxy's internal address (extra host). safeFetch blocks
+   * private IPs, which silently unregistered the OIDC provider (email-only
+   * sign-in). Allow private targets for the configured issuer origin only —
+   * every other URL keeps the full SSRF protection.
+   */
+  protected override allowPrivateTarget(url: string): boolean {
+    const issuer = (this.config as OAuthOIDCProviderConfig | undefined)?.issuer;
+    if (!issuer) return false;
+    try {
+      return new URL(url).origin === new URL(issuer).origin;
+    } catch {
+      return false;
+    }
+  }
+
+  private readonly oidcFetch = (
+    url: string | URL,
+    init: RequestInit | undefined,
+    options: Parameters<typeof safeFetch>[2]
+  ) =>
+    safeFetch(url, init, {
+      ...options,
+      allowPrivateTargetOrigin: this.allowPrivateTarget(url.toString()),
+    });
   readonly #retryScheduler = new ExponentialBackoffScheduler({
     baseDelayMs: OIDC_DISCOVERY_INITIAL_RETRY_DELAY,
     maxDelayMs: OIDC_DISCOVERY_MAX_RETRY_DELAY,
