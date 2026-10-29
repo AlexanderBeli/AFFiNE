@@ -61,6 +61,7 @@ import { IndexerModule } from './plugins/indexer';
 import { LicenseModule } from './plugins/license';
 import { OAuthModule } from './plugins/oauth';
 import { PaymentModule } from './plugins/payment';
+import { SpeakzoneModule } from './plugins/speakzone';
 import { WorkerModule } from './plugins/worker';
 import { ServerRealtimeHandlersModule } from './realtime-handlers.module';
 
@@ -213,7 +214,12 @@ export function buildAppModule(env: Env) {
     // doc service and front service
     .useIf(() => env.flavors.doc || env.flavors.front, DocServiceModule)
     // worker for and self-hosted API only for self-host and local development only
-    .useIf(() => env.dev || env.selfhosted, WorkerModule, SelfhostModule)
+    .useIf(
+      () => env.dev || env.selfhosted,
+      WorkerModule,
+      SelfhostModule,
+      SpeakzoneModule
+    )
     // static frontend routes for front flavor
     .useIf(() => env.flavors.front, StaticFileModule)
 
